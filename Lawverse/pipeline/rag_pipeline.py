@@ -34,7 +34,7 @@ def rag_chain():
         
         embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
         dense_db = FAISS.load_local(dense_db_path, embeddings, allow_dangerous_deserialization=True)
-        
+        logging.info(f"FAISS index loaded successfully from '{dense_db_path}' with {dense_db.index.ntotal} vectors.")
         
         retriver = HybridRetriever(dense_db, bm25, bilingual_chunks, 2, 0.5)
         logging.info("Hybrid retriever initialized successfully with dense and sparse indexes.")

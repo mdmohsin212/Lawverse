@@ -11,7 +11,7 @@ def build_index(chunks):
         dense_db = build_dense_index(chunks)
         
         dense_db.save_local(FAISS_PATH)
-        print(f"FAISS index saved at {FAISS_PATH}")
+        logging.info(f"FAISS index saved at {FAISS_PATH}")
     
         logging.info("Building sparse BM25 index...")
         sparse_db = build_sparse_index(chunks)
