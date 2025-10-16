@@ -4,10 +4,10 @@ from pathlib import Path
 project_name = "Lawverse"
 
 list_of_files = [
-    f"{project_name}/data/__init__.py",
-    f"{project_name}/data/ingest.py",
-    f"{project_name}/data/dataset.py",
-    f"{project_name}/data/monitoring.py",
+    f"{project_name}/datapipeline/__init__.py",
+    f"{project_name}/datapipeline/ingest.py",
+    f"{project_name}/datapipeline/dataset_loader.py",
+    f"{project_name}/datapipeline/preprocess.py",
     
     f"{project_name}/retrieval/__init__.py",
     f"{project_name}/retrieval/dense.py",
@@ -23,9 +23,7 @@ list_of_files = [
     f"{project_name}/memory/langchain_memory.py",
     
     f"{project_name}/orchestration/__init__.py",
-    f"{project_name}/orchestration/pipeline.py",
     f"{project_name}/orchestration/airflow_dag.py",
-    f"{project_name}/orchestration/dagster_job.py",
     
     f"{project_name}/utils/__init__.py",
     f"{project_name}/utils/config.py",
