@@ -16,8 +16,13 @@ def load_config(path : str):
         logging.erorr(f"Error loading config {path}")
         raise ExceptionHandle(e, sys)
 
+# BASE_DIR = Path(__file__).resolve().parent.parent
+# DATA_DIR = BASE_DIR / "data"
+# PDF_DIR = DATA_DIR / "raw"
+# PROCESSED_DIR = DATA_DIR / "processed"
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
+DATA_DIR = Path("/tmp/lawverse_data")
 PDF_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
 
