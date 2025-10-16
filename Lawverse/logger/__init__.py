@@ -22,5 +22,16 @@ logging.basicConfig(
     handlers=[file_handler, console_handler],
 )
 
-logging.getLogger("PIL").setLevel(logging.ERROR)
-logging.getLogger("matplotlib").setLevel(logging.ERROR)
+noisy_libs = [
+    "urllib3",
+    "requests",
+    "httpx",
+    "deep_translator",
+    "PIL",
+    "matplotlib",
+]
+
+for lib in noisy_libs:
+    logging.getLogger(lib).setLevel(logging.WARNING)
+
+logging.getLogger(__name__).info("✅ Logger initialized successfully with clean output.")

@@ -1,0 +1,9 @@
+PyPDF2
+requests
+langchain
+typing
+openai
+pathlib
+numpy
+rank_bm25
+Flask

@@ -43,7 +43,6 @@ def translate_chunks(chunks, max_workers=8):
                 else:
                     src, tgt = "en", "bn"
                 futures[executor.submit(translate, c, src, tgt)] = c
-                logging.info(f"Chunk detected as {src}, translating to {tgt}.")
                 
             for f in as_completed(futures):
                 translated.append(f.result())
