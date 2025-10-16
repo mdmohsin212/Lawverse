@@ -10,3 +10,4 @@ rank_bm25
 Flask
 langdetect
 deep_translator
+sentence-transformers

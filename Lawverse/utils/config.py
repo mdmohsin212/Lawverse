@@ -25,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = Path("/tmp/lawverse_data")
 PDF_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
+FAISS_PATH = "/tmp/faiss_index"
 
 for data in [DATA_DIR, PDF_DIR, PROCESSED_DIR]:
     os.makedirs(data, exist_ok=True)

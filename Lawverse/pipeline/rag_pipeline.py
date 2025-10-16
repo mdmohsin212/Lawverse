@@ -3,6 +3,8 @@ from Lawverse.datapipeline.dataset_loader import load_pdf_text
 from Lawverse.datapipeline.preprocess import chunk_text, translate_chunks
 from Lawverse.retrieval.indexer import build_index
 from Lawverse.retrieval.hybrid import HybridRetriever
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
 from Lawverse.pipeline.llm_loader import llm
 from Lawverse.logger import logging
 from Lawverse.exception import ExceptionHandle
@@ -27,8 +29,15 @@ def rag_chain():
             ]
         logging.info(f"Bilingual chunks created: {len(bilingual_chunks)}")
         
-        dense_db, bm25 = build_index(bilingual_chunks)
+        dense_db_path, bm25 = build_index(bilingual_chunks)
         logging.info("Dense + BM25 indexes built successfully.")
+        
+        embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
+        dense_db = FAISS.load_local(dense_db_path, embeddings, allow_dangerous_deserialization=True)
+        
+        
+        retriver = HybridRetriever(dense_db, bm25, bilingual_chunks, 2, 0.5)
+        logging.info("Hybrid retriever initialized successfully with dense and sparse indexes.")
         
         qa_prompt = PromptTemplate(
             input_variables=["context", "question"],
@@ -53,7 +62,6 @@ def rag_chain():
             """
             )
         
-        retriver = HybridRetriever(dense_db, bm25, bilingual_chunks, 2, 0.5)
         chain = ConversationalRetrievalChain.from_llm(
                 llm=llm,
                 retriever=retriver,
