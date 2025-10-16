@@ -6,8 +6,6 @@ from Lawverse.logger import logging
 from Lawverse.exception import ExceptionHandle
 import sys
 
-BaseRetriever.__config__.arbitrary_types_allowed = True
-
 def hybrid_retrieve(query, faiss_db, bm25, chunks, top_k=3, alpha=0.5):
     try:
         dense_results = faiss_db.similarity_search(query, k=top_k)

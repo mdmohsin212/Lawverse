@@ -9,6 +9,7 @@ def build_index(chunks):
     try:
         logging.info("Building dense FAISS index...")
         dense_db = build_dense_index(chunks)
+        
         dense_db.save_local(FAISS_PATH)
         print(f"FAISS index saved at {FAISS_PATH}")
     
