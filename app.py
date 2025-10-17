@@ -1,13 +1,10 @@
 from Lawverse.pipeline.rag_pipeline import rag_components, create_chat_chian
-from Lawverse.memory.langchain_memory import ChatMemory
+from flask import Flask, render_template, request, jsonify, session
 from Lawverse.utils.config import MEMORY_DIR
 from Lawverse.logger import logging
-from Lawverse.exception import ExceptionHandle
-from flask import Flask, render_template, request, jsonify, session
-import sys
-import os
-import glob
 import json
+import glob
+import os
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET")
@@ -62,7 +59,7 @@ def rag_response():
         logging.error(f"Chat error: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/get_chat', methods=["GET"])
+@app.route('/get_chats', methods=["GET"])
 def get_chats():
     chats = []
     for file_path in glob.glob(f"{MEMORY_DIR}/*.json"):

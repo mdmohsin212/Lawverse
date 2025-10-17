@@ -1,317 +1,358 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chat - Lawverse</title>
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/feather-icons"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat - Lawverse</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Grotesk:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    body {
-      font-family: 'Space Grotesk', sans-serif;
-      background: #000;
-      color: #fff;
-      height: 100vh;
-      overflow: hidden;
-    }
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        background: #000;
+        color: #fff;
+        height: 100vh;
+        overflow: hidden;
+      }
 
-    .glass-panel {
-      background: rgba(0, 0, 20, 0.3);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 255, 255, 0.2);
-      box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
-    }
+      .glass-panel {
+        background: rgba(0, 0, 20, 0.3);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+      }
 
-    .neon-button {
-      background: transparent;
-      border: 2px solid #00ffff;
-      color: #00ffff;
-      padding: 10px 20px;
-      border-radius: 50px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
+      .neon-button {
+        background: transparent;
+        border: 2px solid #00ffff;
+        color: #00ffff;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
 
-    .neon-button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.4), transparent);
-      transition: left 0.5s ease;
-    }
+      .neon-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(0, 255, 255, 0.4),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
 
-    .neon-button:hover::before {
-      left: 100%;
-    }
+      .neon-button:hover::before {
+        left: 100%;
+      }
 
-    .neon-button:hover {
-      box-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff;
-      text-shadow: 0 0 10px #00ffff;
-    }
+      .neon-button:hover {
+        box-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff;
+        text-shadow: 0 0 10px #00ffff;
+      }
 
-    .message-bubble {
-      max-width: 75%;
-      padding: 16px 20px;
-      border-radius: 20px;
-      margin-bottom: 16px;
-      animation: fadeIn 0.5s ease;
-    }
+      .message-bubble {
+        max-width: 75%;
+        padding: 16px 20px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+        animation: fadeIn 0.5s ease;
+      }
 
-    .user-message {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      margin-left: auto;
-      border-bottom-right-radius: 5px;
-    }
+      .user-message {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        margin-left: auto;
+        border-bottom-right-radius: 5px;
+      }
 
-    .ai-message {
-      background: rgba(0, 50, 100, 0.3);
-      border: 1px solid rgba(0, 150, 255, 0.4);
-      border-bottom-left-radius: 5px;
-      box-shadow: 0 0 15px rgba(0, 150, 255, 0.2);
-    }
+      .ai-message {
+        background: rgba(0, 50, 100, 0.3);
+        border: 1px solid rgba(0, 150, 255, 0.4);
+        border-bottom-left-radius: 5px;
+        box-shadow: 0 0 15px rgba(0, 150, 255, 0.2);
+      }
 
-    .input-bar {
-      background: rgba(0, 10, 30, 0.5);
-      border: 2px solid #00ffff;
-      border-radius: 50px;
-      padding: 12px 24px;
-      width: 100%;
-      color: #fff;
-      outline: none;
-    }
+      .input-bar {
+        background: rgba(0, 10, 30, 0.5);
+        border: 2px solid #00ffff;
+        border-radius: 50px;
+        padding: 12px 24px;
+        width: 100%;
+        color: #fff;
+        outline: none;
+      }
 
-    .input-bar:focus {
-      box-shadow: 0 0 20px #00ffff;
-    }
+      .input-bar:focus {
+        box-shadow: 0 0 20px #00ffff;
+      }
 
-    .sidebar-item {
-      padding: 12px 16px;
-      border-radius: 12px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
+      .sidebar-item {
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
 
-    .sidebar-item:hover {
-      background: rgba(0, 100, 200, 0.2);
-      box-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
-    }
+      .sidebar-item:hover {
+        background: rgba(0, 100, 200, 0.2);
+        box-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+      }
 
-    .glow-text {
-      text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
-    }
+      .glow-text {
+        text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+      }
 
-    .typing-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #00ffff;
-      margin: 0 2px;
-      animation: typing 1.4s infinite ease-in-out;
-    }
+      .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #00ffff;
+        margin: 0 2px;
+        animation: typing 1.4s infinite ease-in-out;
+      }
 
-    .typing-dot:nth-child(1) { animation-delay: 0s; }
-    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+      .typing-dot:nth-child(1) {
+        animation-delay: 0s;
+      }
+      .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
 
-    @keyframes typing {
-      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-      30% { transform: translateY(-10px); opacity: 1; }
-    }
+      @keyframes typing {
+        0%,
+        60%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.4;
+        }
+        30% {
+          transform: translateY(-10px);
+          opacity: 1;
+        }
+      }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-    .page-transition {
-      transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
-    }
-  </style>
-</head>
+      .page-transition {
+        transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+      }
+    </style>
+  </head>
 
-<body class="page-transition">
-  <div class="flex h-full">
-    <!-- Sidebar -->    
-    <div class="glass-panel w-64 flex-shrink-0 hidden md:flex flex-col p-4">
-      <button class="neon-button w-full mb-6 flex items-center justify-center">
-        <i data-feather="plus" class="mr-2 w-4 h-4"></i>
-        New Chat
-      </button>
-
-      <div class="flex-1 overflow-y-auto">
-        <h3 class="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Chat History</h3>
-        <div class="space-y-2">
-          <div class="sidebar-item flex items-center">
-            <i data-feather="message-circle" class="mr-3 text-cyan-400"></i>
-            <span class="truncate">Corporate Law Query</span>
-          </div>
-          <div class="sidebar-item flex items-center">
-            <i data-feather="message-circle" class="mr-3 text-cyan-400"></i>
-            <span class="truncate">Labour Dispute Analysis</span>
-          </div>
-          <div class="sidebar-item flex items-center">
-            <i data-feather="message-circle" class="mr-3 text-cyan-400"></i>
-            <span class="truncate">Digital Security Act</span>
-          </div>
-          <div class="sidebar-item flex items-center">
-            <i data-feather="message-circle" class="mr-3 text-cyan-400"></i>
-            <span class="truncate">Contract Review</span>
-          </div>
-          <div class="sidebar-item flex items-center">
-            <i data-feather="message-circle" class="mr-3 text-cyan-400"></i>
-            <span class="truncate">Legal Compliance</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-auto pt-4 border-t border-gray-700">
-        <div class="flex items-center">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"></div>
-          <div class="ml-3">
-            <p class="text-sm font-medium">Legal User</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Chat Area -->
-    <div class="flex-1 flex flex-col">
-      <!-- Top Bar -->
-      <div class="glass-panel py-4 px-6 flex items-center justify-between">
-        <div class="flex items-center">
-          <div class="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mr-3"></div>
-          <h1 class="text-xl font-bold glow-text">LAWVERSE CHAT</h1>
-        </div>
-        <button onclick="window.location.href='/'" class="text-gray-400 hover:text-cyan-300 transition-colors duration-300">
-          <i data-feather="home"></i>
+  <body class="page-transition">
+    <div class="flex h-full">
+      <div class="glass-panel w-64 flex-shrink-0 hidden md:flex flex-col p-4">
+        <button
+          class="neon-button w-full mb-6 flex items-center justify-center"
+        >
+          <i data-feather="plus" class="mr-2 w-4 h-4"></i>
+          New Chat
         </button>
-      </div>
 
-      <!-- Chat Messages -->
-      <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
-        <div class="message-bubble ai-message">
-          <div class="flex items-start">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3 flex-shrink-0"></div>
-            <div>
-              <p class="font-semibold text-cyan-300 mb-1">Lawverse AI</p>
-              <p>Hello! I'm your Legal Knowledge Assistant. I can help you understand complex legal documents and acts like corporate, labour, and digital laws. How can I assist you today?</p>
+        <div class="flex-1 overflow-y-auto">
+          <h3
+            class="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider"
+          >
+            Chat History
+          </h3>
+          <div class="space-y-2"></div>
+        </div>
+
+        <div class="mt-auto pt-4 border-t border-gray-700">
+          <div class="flex items-center">
+            <div
+              class="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"
+            ></div>
+            <div class="ml-3">
+              <p class="text-sm font-medium">Legal User</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Input Bar -->
-      <div class="glass-panel p-4">
-        <div class="flex items-center space-x-4">
-          <input type="text" id="message-input" placeholder="Ask your legal question..." class="input-bar flex-1 text-white" />
-          <button id="send-button" class="neon-button flex items-center">
-            <i data-feather="send" class="mr-2 w-4 h-4"></i> Send
+      <div class="flex-1 flex flex-col">
+        <div class="glass-panel py-4 px-6 flex items-center justify-between">
+          <div class="flex items-center">
+            <div
+              class="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mr-3"
+            ></div>
+            <h1 class="text-xl font-bold glow-text">LAWVERSE CHAT</h1>
+          </div>
+          <button
+            onclick="window.location.href='/'"
+            class="text-gray-400 hover:text-cyan-300 transition-colors duration-300"
+          >
+            <i data-feather="home"></i>
           </button>
+        </div>
+
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+          <div class="message-bubble ai-message">
+            <div class="flex items-start">
+              <div
+                class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3 flex-shrink-0"
+              ></div>
+              <div>
+                <p class="font-semibold text-cyan-300 mb-1">Lawverse AI</p>
+                <p>
+                  Hello! I'm your Legal Knowledge Assistant. I can help you
+                  understand complex legal documents and acts like corporate,
+                  labour, and digital laws. How can I assist you today?
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel p-4">
+          <div class="flex items-center space-x-4">
+            <input
+              type="text"
+              id="message-input"
+              placeholder="Ask your legal question..."
+              class="input-bar flex-1 text-white"
+            />
+            <button id="send-button" class="neon-button flex items-center">
+              <i data-feather="send" class="mr-2 w-4 h-4"></i> Send
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Mobile Menu -->
-  <button class="md:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center text-white shadow-lg z-50" id="menu-btn">
-    <i data-feather="menu"></i>
-  </button>
+    <button
+      class="md:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center text-white shadow-lg z-50"
+      id="menu-btn"
+    >
+      <i data-feather="menu"></i>
+    </button>
 
-<script>
-  feather.replace();
+    <script>
+      feather.replace();
 
-  document.addEventListener('DOMContentLoaded', function () {
-    const chatMessages = document.getElementById('chat-messages');
-    const messageInput = document.getElementById('message-input');
-    const sendButton = document.getElementById('send-button');
-    const sidebar = document.querySelector('.glass-panel.w-64');
-    const menuBtn = document.getElementById('menu-btn');
+      document.addEventListener("DOMContentLoaded", function () {
+        const chatMessages = document.getElementById("chat-messages");
+        const messageInput = document.getElementById("message-input");
+        const sendButton = document.getElementById("send-button");
+        const sidebar = document.querySelector(".glass-panel.w-64");
+        const menuBtn = document.getElementById("menu-btn");
 
-    function addMessage(message, isUser) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `message-bubble ${isUser ? 'user-message' : 'ai-message'}`;
-      messageDiv.innerHTML = `
+        function addMessage(message, isUser) {
+          const messageDiv = document.createElement("div");
+          messageDiv.className = `message-bubble ${
+            isUser ? "user-message" : "ai-message"
+          }`;
+          messageDiv.innerHTML = `
         <div class="flex items-start">
-          <div class="w-8 h-8 rounded-full ${isUser ? 'bg-gradient-to-r from-gray-400 to-gray-600' : 'bg-gradient-to-r from-blue-500 to-cyan-500'} mr-3 flex-shrink-0"></div>
+          <div class="w-8 h-8 rounded-full ${
+            isUser
+              ? "bg-gradient-to-r from-gray-400 to-gray-600"
+              : "bg-gradient-to-r from-blue-500 to-cyan-500"
+          } mr-3 flex-shrink-0"></div>
           <div>
-            <p class="font-semibold ${isUser ? 'text-gray-300' : 'text-cyan-300'} mb-1">${isUser ? 'You' : 'Lawverse AI'}</p>
+            <p class="font-semibold ${
+              isUser ? "text-gray-300" : "text-cyan-300"
+            } mb-1">${isUser ? "You" : "Lawverse AI"}</p>
             <p>${message}</p>
           </div>
         </div>`;
-      chatMessages.appendChild(messageDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+          chatMessages.appendChild(messageDiv);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
 
-    function showTyping() {
-      const typing = document.createElement('div');
-      typing.className = 'flex items-center p-4';
-      typing.innerHTML = `
+        function showTyping() {
+          const typing = document.createElement("div");
+          typing.className = "flex items-center p-4";
+          typing.innerHTML = `
         <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3"></div>
         <div class="flex">
           <div class="typing-dot"></div>
           <div class="typing-dot"></div>
           <div class="typing-dot"></div>
         </div>`;
-      chatMessages.appendChild(typing);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-      return typing;
-    }
-
-    async function sendMessage() {
-      const text = messageInput.value.trim();
-      if (!text) return;
-
-      addMessage(text, true);
-      messageInput.value = '';
-
-      const typing = showTyping();
-
-      try {
-        const response = await fetch('/response', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text })
-        });
-
-        const data = await response.json();
-        typing.remove();
-
-        if (data.answer) {
-          addMessage(data.answer, false);
-        } else if (data.error) {
-          addMessage(`⚠️ Error: ${data.error}`, false);
-        } else {
-          addMessage("⚠️ Unexpected response from server.", false);
+          chatMessages.appendChild(typing);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+          return typing;
         }
-      } catch (error) {
-        typing.remove();
-        addMessage("❌ Error: Unable to connect to the server.", false);
-      }
-    }
 
-    sendButton.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keypress', (e) => e.key === 'Enter' && sendMessage());
+        async function sendMessage() {
+          const text = messageInput.value.trim();
+          if (!text) return;
 
-    document.querySelector('.neon-button').addEventListener('click', async () => {
-      const res = await fetch('/new_chat', { method: 'POST' });
-      const data = await res.json();
-      document.getElementById('chat-messages').innerHTML = `
+          addMessage(text, true);
+          messageInput.value = "";
+
+          const typing = showTyping();
+
+          try {
+            const response = await fetch("/response", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: text }),
+            });
+
+            const data = await response.json();
+            typing.remove();
+
+            if (data.answer) {
+              addMessage(data.answer, false);
+            } else if (data.error) {
+              addMessage(`⚠️ Error: ${data.error}`, false);
+            } else {
+              addMessage("⚠️ Unexpected response from server.", false);
+            }
+          } catch (error) {
+            typing.remove();
+            addMessage("❌ Error: Unable to connect to the server.", false);
+          }
+        }
+
+        sendButton.addEventListener("click", sendMessage);
+        messageInput.addEventListener(
+          "keypress",
+          (e) => e.key === "Enter" && sendMessage()
+        );
+
+        document
+          .querySelector(".neon-button")
+          .addEventListener("click", async () => {
+            const res = await fetch("/new_chat", { method: "POST" });
+            const data = await res.json();
+            document.getElementById("chat-messages").innerHTML = `
         <div class="message-bubble ai-message">
           <div class="flex items-start">
             <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3 flex-shrink-0"></div>
@@ -321,59 +362,57 @@
             </div>
           </div>
         </div>`;
-    });
+          });
 
+        async function loadSidebarChats() {
+          const res = await fetch("/get_chats");
+          const chats = await res.json();
+          const sidebar = document.querySelector(".space-y-2");
+          sidebar.innerHTML = "";
 
-    async function loadSidebarChats() {
-    const res = await fetch("/get_chats");
-    const chats = await res.json();
-    const sidebar = document.querySelector(".space-y-2");
-    sidebar.innerHTML = "";
-
-    chats.forEach(chat => {
-      const item = document.createElement("div");
-      item.className = "sidebar-item flex items-center";
-      item.innerHTML = `
+          chats.forEach((chat) => {
+            const item = document.createElement("div");
+            item.className = "sidebar-item flex items-center";
+            item.innerHTML = `
         <i data-feather="message-circle" class="mr-3 text-cyan-400"></i>
         <span class="truncate">${chat.title}</span>`;
-      
-      item.addEventListener("click", async () => {
-        const resp = await fetch(`/load_chat/${chat.chat_id}`, { method: "POST" });
-        const data = await resp.json();
-        if (data.error) {
-          alert(data.error);
-          return;
+
+            item.addEventListener("click", async () => {
+              const resp = await fetch(`/load_chat/${chat.chat_id}`, {
+                method: "POST",
+              });
+              const data = await resp.json();
+              if (data.error) {
+                alert(data.error);
+                return;
+              }
+
+              document.getElementById("chat-messages").innerHTML = "";
+
+              data.messages.forEach((msg) => {
+                addMessage(msg.user, true);
+                addMessage(msg.ai, false);
+              });
+            });
+
+            sidebar.appendChild(item);
+          });
+          feather.replace();
         }
 
-        document.getElementById("chat-messages").innerHTML = "";
+        document.addEventListener("DOMContentLoaded", () => {
+          loadSidebarChats();
+        });
 
-        data.messages.forEach(msg => {
-          addMessage(msg.user, true);
-          addMessage(msg.ai, false);
+        menuBtn.addEventListener("click", () => {
+          sidebar.classList.toggle("hidden");
+          sidebar.classList.toggle("fixed");
+          sidebar.classList.toggle("top-0");
+          sidebar.classList.toggle("left-0");
+          sidebar.classList.toggle("z-40");
+          sidebar.classList.toggle("h-full");
         });
       });
-
-      sidebar.appendChild(item);
-    });
-    feather.replace();
-  }
-
-  // Load sidebar chats on page load
-  document.addEventListener("DOMContentLoaded", () => {
-    loadSidebarChats();
-  });
-
-
-    menuBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('hidden');
-      sidebar.classList.toggle('fixed');
-      sidebar.classList.toggle('top-0');
-      sidebar.classList.toggle('left-0');
-      sidebar.classList.toggle('z-40');
-      sidebar.classList.toggle('h-full');
-    });
-  });
-</script>
-
-</body>
+    </script>
+  </body>
 </html>

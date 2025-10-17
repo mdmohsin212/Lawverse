@@ -140,7 +140,7 @@
             >Home</a
           >
           <a
-              onclick="window.location.href='/chat'"
+            onclick="window.location.href='/chat'"
             class="text-gray-300 hover:text-cyan-300 transition-colors duration-300"
             >Chat</a
           >
@@ -161,10 +161,8 @@
       </div>
     </nav>
 
-    <!-- Hero Section -->
     <section class="min-h-screen flex items-center justify-center px-6 pt-20">
       <div class="container mx-auto text-center">
-        <!-- 3D Balance Scale Animation Placeholder -->
         <div class="w-64 h-64 mx-auto mb-8 relative">
           <div class="absolute inset-0 flex items-center justify-center">
             <div
@@ -208,7 +206,6 @@
       </div>
     </section>
 
-    <!-- Features Section -->
     <section class="py-20 px-6">
       <div class="container mx-auto">
         <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 glow-text">
@@ -216,7 +213,6 @@
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Corporate Law Card -->
           <div class="glass-panel rounded-2xl p-8 document-card">
             <div
               class="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center mb-6"
@@ -235,7 +231,6 @@
             </div>
           </div>
 
-          <!-- Labour Law Card -->
           <div class="glass-panel rounded-2xl p-8 document-card">
             <div
               class="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center mb-6"
@@ -254,7 +249,6 @@
             </div>
           </div>
 
-          <!-- Digital Security Card -->
           <div class="glass-panel rounded-2xl p-8 document-card">
             <div
               class="w-16 h-16 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center mb-6"
@@ -278,7 +272,6 @@
       </div>
     </section>
 
-    <!-- About Section -->
     <section id="about" class="py-24 px-6 relative">
       <div class="container mx-auto text-center max-w-4xl">
         <h2 class="text-3xl md:text-4xl font-bold mb-8 glow-text">
@@ -331,7 +324,6 @@
       </div>
     </section>
 
-    <!-- Contact Section -->
     <section id="contact" class="py-15 px-6 relative overflow-hidden">
       <div class="absolute inset-0 opacity-10">
         <div
@@ -393,7 +385,6 @@
       </div>
     </section>
 
-    <!-- Floating Documents Animation -->
     <div class="fixed inset-0 pointer-events-none -z-10">
       <div
         class="absolute top-1/4 left-1/4 w-8 h-12 bg-gradient-to-b from-blue-400 to-purple-600 opacity-20 rounded floating-element"
@@ -413,7 +404,6 @@
       ></div>
     </div>
 
-    <!-- Footer -->
     <footer class="glass-panel py-8 px-6">
       <div class="container mx-auto text-center">
         <div class="flex justify-center space-x-8 mb-6">
@@ -445,7 +435,6 @@
     </footer>
 
     <script>
-      // Initialize Vanta.js background
       VANTA.GLOBE({
         el: "#vanta-background",
         mouseControls: true,
@@ -456,12 +445,11 @@
         scale: 1.0,
         scaleMobile: 1.0,
         color: 0x00ffff,
-        color2: 0xff00ff, 
+        color2: 0xff00ff,
         backgroundColor: 0x000000,
         size: 1.2,
       });
 
-      // Page transition effect
       document.addEventListener("DOMContentLoaded", function () {
         document.body.classList.add("page-transition");
         setTimeout(() => {
@@ -469,7 +457,6 @@
         }, 100);
       });
 
-      // Smooth scroll for navigation links
       document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener("click", function (e) {
           e.preventDefault();
