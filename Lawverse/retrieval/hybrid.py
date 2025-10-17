@@ -1,6 +1,7 @@
 import numpy as np
 from langchain.schema import Document
 from langchain.schema.retriever import BaseRetriever
+from langchain_core.pydantic_v1 import Field
 from Lawverse.retrieval.sparse import bm25_retrieve
 from Lawverse.logger import logging
 from Lawverse.exception import ExceptionHandle
@@ -51,12 +52,11 @@ def hybrid_retrieve(query, faiss_db, bm25, chunks, top_k=3, alpha=0.5):
 
 
 class HybridRetriever(BaseRetriever):
-    def __init__(self, faiss_db, bm25, chunks, top_k=4, alpha=0.5):
-        self.faiss_db = faiss_db
-        self.bm25 = bm25
-        self.chunks = chunks
-        self.top_k = top_k
-        self.alpha = alpha
+    faiss_db: object = Field(...)
+    bm25: object = Field(...)
+    chunks: list = Field(...)
+    top_k: int = Field(default=4)
+    alpha: float = Field(default=0.5)
 
     def _get_relevant_documents(self, query, *, run_manager=None):
         return hybrid_retrieve(query, self.faiss_db, self.bm25, self.chunks, top_k=self.top_k, alpha=self.alpha)

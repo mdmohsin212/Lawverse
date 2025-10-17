@@ -2,6 +2,7 @@ PyPDF2
 requests
 langchain
 langchain_community
+langchain_core
 typing
 openai
 pathlib
