@@ -12,7 +12,11 @@ chat_history = []
 def home():
     return render_template("index.html")
 
-@app.route("/chat", methods=["POST"])
+@app.route("/chat", methods=["GET"])
+def home():
+    return render_template("chat.html")
+
+@app.route("/response", methods=["POST"])
 def chat():
     global chat_history
     try:
