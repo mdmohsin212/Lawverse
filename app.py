@@ -14,6 +14,7 @@ def home():
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    global chat_history
     try:
         data = request.get_json()
         query = data.get("message", "").strip()
