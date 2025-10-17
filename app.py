@@ -16,7 +16,7 @@ def home():
 def home():
     return render_template("chat.html")
 
-@app.route("/response", methods=["POST"])
+@app.route("/response", methods=["POST"])   
 def chat():
     global chat_history
     try:
