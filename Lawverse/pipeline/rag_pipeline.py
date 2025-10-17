@@ -6,6 +6,7 @@ from Lawverse.retrieval.hybrid import HybridRetriever
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from Lawverse.pipeline.llm_loader import llm
+from Lawverse.memory.langchain_memory import ChatMemory
 from Lawverse.logger import logging
 from Lawverse.exception import ExceptionHandle
 
@@ -13,7 +14,7 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts import PromptTemplate
 import sys
 
-def rag_chain():
+def rag_components():
     try:
         pdf_path = fetch_file()
         text = load_pdf_text(pdf_path)
@@ -36,9 +37,9 @@ def rag_chain():
         dense_db = FAISS.load_local(dense_db_path, embeddings, allow_dangerous_deserialization=True)
         logging.info(f"FAISS index loaded successfully from '{dense_db_path}' with {dense_db.index.ntotal} vectors.")
         
-        retriver = HybridRetriever(faiss_db=dense_db, bm25=bm25, chunks=bilingual_chunks, top_k=2, alpha=0.5)
+        retriever = HybridRetriever(faiss_db=dense_db, bm25=bm25, chunks=bilingual_chunks, top_k=2, alpha=0.5)
         logging.info("Hybrid retriever initialized successfully with dense and sparse indexes.")
-        
+                
         qa_prompt = PromptTemplate(
             input_variables=["context", "question"],
             template="""
@@ -62,15 +63,33 @@ def rag_chain():
             """
             )
         
-        chain = ConversationalRetrievalChain.from_llm(
-                llm=llm,
-                retriever=retriver,
-                combine_docs_chain_kwargs={"prompt": qa_prompt},
-                return_source_documents=True
-        )
-        logging.info("RAG chain initialized successfully.")
-        return chain
-    
+        logging.info("RAG components loaded successfully.")
+        return {
+            "retriever": retriever,
+            "qa_prompt": qa_prompt
+        }
+
     except Exception as e:
         logging.error(f"RAG pipeline failed: {e}")
+        raise ExceptionHandle(e, sys)
+    
+
+def create_chat_chian(components, chat_id=None):
+    try:
+        memory_manager = ChatMemory(chat_id=chat_id)
+        memory = memory_manager.memory
+        
+        chain = ConversationalRetrievalChain.from_llm(
+            llm=llm,
+            retriever=components["retriver"],
+            combine_docs_chain_kwargs={"prompt": components["qa_prompt"]},
+            memory=memory,
+            return_source_documents=True
+        )
+        
+        logging.info("RAG chain initialized successfully.")
+        return chain, memory_manager
+    
+    except Exception as e:
+        logging.error(f"Chat chain creation failed")
         raise ExceptionHandle(e, sys)

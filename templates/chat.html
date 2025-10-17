@@ -198,7 +198,7 @@
           <div class="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mr-3"></div>
           <h1 class="text-xl font-bold glow-text">LAWVERSE CHAT</h1>
         </div>
-        <button onclick="window.location.href='index.html'" class="text-gray-400 hover:text-cyan-300 transition-colors duration-300">
+        <button onclick="window.location.href='/'" class="text-gray-400 hover:text-cyan-300 transition-colors duration-300">
           <i data-feather="home"></i>
         </button>
       </div>
@@ -307,6 +307,21 @@
 
     sendButton.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', (e) => e.key === 'Enter' && sendMessage());
+
+    document.querySelector('.neon-button').addEventListener('click', async () => {
+      const res = await fetch('/new_chat', { method: 'POST' });
+      const data = await res.json();
+      document.getElementById('chat-messages').innerHTML = `
+        <div class="message-bubble ai-message">
+          <div class="flex items-start">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3 flex-shrink-0"></div>
+            <div>
+              <p class="font-semibold text-cyan-300 mb-1">Lawverse AI</p>
+              <p>New chat started! You can begin your next legal query.</p>
+            </div>
+          </div>
+        </div>`;
+    });
 
     menuBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
