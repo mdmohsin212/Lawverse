@@ -13,7 +13,7 @@ class ChatMemory:
         try:
             self.chat_id = chat_id or self._create_new_chat_id()
             self.memory_file = os.path.join(MEMORY_DIR, f"{self.chat_id}.json")
-            self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+            self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key="answer")
             self._load_memory()
             logging.info(f"ChatMemory initialized for chat_id: {self.chat_id}")
         except Exception as e:
