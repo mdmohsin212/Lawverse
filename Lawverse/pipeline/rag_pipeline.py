@@ -36,7 +36,7 @@ def rag_chain():
         dense_db = FAISS.load_local(dense_db_path, embeddings, allow_dangerous_deserialization=True)
         logging.info(f"FAISS index loaded successfully from '{dense_db_path}' with {dense_db.index.ntotal} vectors.")
         
-        retriver = HybridRetriever(dense_db, bm25, bilingual_chunks, 2, 0.5)
+        retriver = HybridRetriever(faiss_db=dense_db, bm25=bm25, chunks=bilingual_chunks, top_k=2, alpha=0.5)
         logging.info("Hybrid retriever initialized successfully with dense and sparse indexes.")
         
         qa_prompt = PromptTemplate(
