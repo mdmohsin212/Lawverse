@@ -13,11 +13,11 @@ def home():
     return render_template("index.html")
 
 @app.route("/chat", methods=["GET"])
-def home():
+def chat():
     return render_template("chat.html")
 
-@app.route("/response", methods=["POST"])   
-def chat():
+@app.route("/response", methods=["POST"])
+def rag_response():
     global chat_history
     try:
         data = request.get_json()
