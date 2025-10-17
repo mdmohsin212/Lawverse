@@ -3,230 +3,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LawSage AI - Legal Knowledge Assistant</title>
+    <title>Lawverse - Your Intelligent Legal Knowledge Assistant</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
-    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1A73E8',
-                        secondary: '#F1F3F4',
-                        accent: '#FF6F61'
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #1A73E8 0%, #4285F4 100%);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .chat-bubble-user {
-            background: linear-gradient(135deg, #1A73E8 0%, #4285F4 100%);
-            color: white;
-            border-radius: 20px 20px 0 20px;
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #000000;
+            color: #ffffff;
+            overflow-x: hidden;
         }
-        .chat-bubble-ai {
-            background: #F8FAFC;
-            border: 1px solid #E2E8F0;
-            border-radius: 20px 20px 20px 0;
+        
+        .hero-title {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
         }
-        .sidebar-transition {
-            transition: all 0.3s ease-in-out;
+        
+        .glass-panel {
+            background: rgba(0, 0, 20, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
         }
-        .typing-indicator {
-            display: inline-flex;
-            align-items: center;
+        
+        .neon-button {
+            background: transparent;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #6B7280;
-            margin: 0 2px;
-            animation: typing 1.4s infinite ease-in-out;
+        
+        .neon-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.4), transparent);
+            transition: left 0.5s ease;
         }
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
+        
+        .neon-button:hover::before {
+            left: 100%;
         }
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
+        
+        .neon-button:hover {
+            box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+            text-shadow: 0 0 10px #00ffff;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        
+        .floating-element {
+            animation: float 6s ease-in-out infinite;
         }
+        
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+        }
+        
+        .document-card {
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+        
+        .document-card:hover {
+            transform: rotateY(10deg) translateY(-10px);
+        }
+        
+        .page-transition {
+            transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
     </style>
 </head>
-<body class="bg-gray-50 font-sans">
+<body>
+    <div id="vanta-background" class="fixed inset-0 -z-10"></div>
+    
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center">
-                        <i data-feather="scale" class="text-primary h-8 w-8"></i>
-                        <span class="ml-2 text-xl font-bold text-gray-900">LawSage AI</span>
-                    </div>
-                </div>
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="index.html" class="text-gray-700 hover:text-primary transition-colors duration-200">Home</a>
-                    <a href="chat.html" class="text-gray-700 hover:text-primary transition-colors duration-200">Chat</a>
-                    <a href="about.html" class="text-gray-700 hover:text-primary transition-colors duration-200">About</a>
-                    <a href="contact.html" class="text-gray-700 hover:text-primary transition-colors duration-200">Contact</a>
-                    <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                        Start Chat
-                    </button>
-                </div>
-                <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-button" class="text-gray-700">
-                        <i data-feather="menu"></i>
-                    </button>
-                </div>
-            </div>
+<!-- Navigation -->
+<nav class="glass-panel fixed top-0 left-0 right-0 z-50 py-4 px-6">
+    <div class="container mx-auto flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
+            <h1 class="text-xl font-bold glow-text cursor-pointer" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+                LAWVERSE
+            </h1>
         </div>
-    </nav>
+        <div class="hidden md:flex space-x-8">
+            <a href="#" class="text-gray-300 hover:text-cyan-300 transition-colors duration-300">Home</a>
+            <a href="chat.html" class="text-gray-300 hover:text-cyan-300 transition-colors duration-300">Chat</a>
+            <a href="#about" class="text-gray-300 hover:text-cyan-300 transition-colors duration-300">About</a>
+            <a href="#contact" class="text-gray-300 hover:text-cyan-300 transition-colors duration-300">Contact</a>
+        </div>
+        <button class="md:hidden text-gray-300">
+            <i data-feather="menu"></i>
+        </button>
+    </div>
+</nav>
+
 
     <!-- Hero Section -->
-    <section class="gradient-bg text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <div class="text-center fade-in">
-                <h1 class="text-4xl md:text-6xl font-bold mb-6">Your AI Legal Companion</h1>
-                <p class="text-xl md:text-2xl mb-8 opacity-90">Intelligent legal assistance powered by cutting-edge AI technology</p>
-                <a href="chat.html" class="inline-flex items-center bg-accent text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-red-500 transform hover:scale-105 transition-all duration-200 shadow-lg">
-                    Start Legal Chat
-                    <i data-feather="arrow-right" class="ml-2"></i>
-                </a>
+    <section class="min-h-screen flex items-center justify-center px-6 pt-20">
+        <div class="container mx-auto text-center">
+            <!-- 3D Balance Scale Animation Placeholder -->
+            <div class="w-64 h-64 mx-auto mb-8 relative">
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-32 h-32 border-2 border-cyan-400 rounded-full flex items-center justify-center floating-element">
+                        <div class="w-24 h-24 border-2 border-purple-400 rounded-full flex items-center justify-center">
+                            <div class="w-4 h-4 bg-cyan-400 rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-32 bg-gradient-to-b from-cyan-400 to-transparent"></div>
+                    <div class="absolute -left-8 top-1/2 transform -translate-y-1/2 w-16 h-1 bg-gradient-to-r from-transparent to-cyan-400"></div>
+                    <div class="absolute -right-8 top-1/2 transform -translate-y-1/2 w-16 h-1 bg-gradient-to-l from-transparent to-purple-400"></div>
+                </div>
             </div>
+            
+            <h1 class="hero-title text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
+                Lawverse
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                Your Intelligent Legal Knowledge Assistant
+            </p>
+            <p class="text-lg text-gray-400 mb-12 max-w-3xl mx-auto">
+                Ask complex legal questions, explore acts & sections, get trusted answers powered by advanced AI technology.
+            </p>
+            
+            <button onclick="window.location.href='chat.html'" class="neon-button text-lg">
+                Start Chat
+            </button>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 fade-in">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Powerful Legal AI Features</h2>
-                <p class="text-xl text-gray-600">Advanced capabilities for comprehensive legal assistance</p>
-            </div>
+    <section class="py-20 px-6">
+        <div class="container mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 glow-text">Legal Domains We Cover</h2>
             
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Feature 1 -->
-                <div class="bg-secondary p-8 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 fade-in">
-                    <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4">
-                        <i data-feather="search" class="text-white"></i>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Corporate Law Card -->
+                <div class="glass-panel rounded-2xl p-8 document-card">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center mb-6">
+                        <i data-feather="briefcase" class="text-white"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Hybrid Search</h3>
-                    <p class="text-gray-600">Combining semantic and keyword search for precise legal information retrieval</p>
+                    <h3 class="text-2xl font-bold mb-4 text-cyan-300">Corporate Law</h3>
+                    <p class="text-gray-300 mb-6">Business formations, mergers, compliance, and corporate governance matters.</p>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-purple-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-blue-400"></div>
+                    </div>
                 </div>
-
-                <!-- Feature 2 -->
-                <div class="bg-secondary p-8 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 fade-in">
-                    <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4">
+                
+                <!-- Labour Law Card -->
+                <div class="glass-panel rounded-2xl p-8 document-card">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center mb-6">
+                        <i data-feather="users" class="text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-purple-300">Labour Law</h3>
+                    <p class="text-gray-300 mb-6">Employment contracts, workplace rights, disputes, and labor regulations.</p>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-purple-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-pink-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-indigo-400"></div>
+                    </div>
+                </div>
+                
+                <!-- Digital Security Card -->
+                <div class="glass-panel rounded-2xl p-8 document-card">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center mb-6">
                         <i data-feather="shield" class="text-white"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Hallucination Control</h3>
-                    <p class="text-gray-600">Advanced algorithms to minimize inaccurate legal information</p>
-                </div>
-
-                <!-- Feature 3 -->
-                <div class="bg-secondary p-8 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 fade-in">
-                    <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4">
-                        <i data-feather="zap" class="text-white"></i>
+                    <h3 class="text-2xl font-bold mb-4 text-blue-300">Digital Security</h3>
+                    <p class="text-gray-300 mb-6">Cybersecurity laws, data protection, privacy regulations, and digital rights.</p>
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-blue-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-indigo-400"></div>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-3">FastAPI Integration</h3>
-                    <p class="text-gray-600">Lightning-fast responses with modern backend architecture</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="py-20 bg-gray-900 text-white">
-        <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 fade-in">
-            <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to Transform Your Legal Research?</h2>
-        <p class="text-xl mb-8 opacity-90">Join thousands of legal professionals using AI to enhance their practice</p>
-        <a href="chat.html" class="inline-flex items-center bg-accent text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-red-500 transform hover:scale-105 transition-all duration-200">
-            Get Started Now
-            <i data-feather="arrow-right" class="ml-2"></i>
-        </a>
+        <!-- About Section -->
+<section id="about" class="py-24 px-6 relative">
+    <div class="container mx-auto text-center max-w-4xl">
+        <h2 class="text-3xl md:text-4xl font-bold mb-8 glow-text">About Lawverse</h2>
+        <p class="text-gray-300 text-lg leading-relaxed mb-8">
+            <span class="text-cyan-300 font-semibold">Lawverse</span> is a next-generation 
+            <span class="text-purple-400">AI-powered Legal Knowledge Assistant</span> designed to simplify
+            how you interact with complex legal information. Using advanced
+            <span class="text-cyan-400 font-semibold">Retrieval-Augmented Generation (RAG)</span> and hybrid search (FAISS + BM25),
+            Lawverse delivers factual, context-rich answers from trusted legal documents — 
+            fast, accurate, and multilingual.
+        </p>
+
+        <div class="flex justify-center space-x-6 mt-10">
+            <div class="flex flex-col items-center">
+                <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 shadow-lg shadow-cyan-500/30 mb-3">
+                    <i data-feather="database" class="text-white"></i>
+                </div>
+                <p class="text-gray-400 text-sm">Hybrid Retrieval</p>
+            </div>
+
+            <div class="flex flex-col items-center">
+                <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-gradient-to-r from-purple-400 to-pink-500 shadow-lg shadow-purple-500/30 mb-3">
+                    <i data-feather="shield" class="text-white"></i>
+                </div>
+                <p class="text-gray-400 text-sm">Hallucination Control</p>
+            </div>
+
+            <div class="flex flex-col items-center">
+                <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 shadow-lg shadow-blue-500/30 mb-3">
+                    <i data-feather="cpu" class="text-white"></i>
+                </div>
+                <p class="text-gray-400 text-sm">LLM Intelligence</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-15 px-6 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute w-64 h-64 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full blur-3xl top-10 left-1/3 animate-pulse"></div>
+            <div class="absolute w-72 h-72 bg-gradient-to-r from-blue-400 to-pink-500 rounded-full blur-3xl bottom-10 right-1/4 animate-pulse"></div>
+        </div>
+
+        <div class="container mx-auto relative z-10 text-center max-w-3xl glass-panel rounded-2xl p-10">
+            <h2 class="text-3xl md:text-4xl font-bold mb-8 glow-text">Contact Us</h2>
+            <p class="text-gray-300 mb-10 text-lg">
+                Have questions or want to collaborate? We’d love to hear from you.  
+                Reach out anytime and our team will get back to you shortly.
+            </p>
+
+            <form class="space-y-6">
+                <div class="flex flex-col md:flex-row md:space-x-6">
+                    <input type="text" placeholder="Your Name" class="flex-1 p-4 rounded-lg bg-black/40 border border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 mb-4 md:mb-0">
+                    <input type="email" placeholder="Your Email" class="flex-1 p-4 rounded-lg bg-black/40 border border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400">
+                </div>
+                <textarea placeholder="Your Message" rows="5" class="w-full p-4 rounded-lg bg-black/40 border border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+                <button type="submit" class="neon-button text-lg">Send Message</button>
+            </form>
+
+            <div class="flex justify-center space-x-6 mt-12">
+                <a href="#" class="text-gray-400 hover:text-cyan-300 transition"><i data-feather="twitter"></i></a>
+                <a href="#" class="text-gray-400 hover:text-purple-300 transition"><i data-feather="linkedin"></i></a>
+                <a href="#" class="text-gray-400 hover:text-blue-300 transition"><i data-feather="mail"></i></a>
+                <a href="#" class="text-gray-400 hover:text-pink-300 transition"><i data-feather="github"></i></a>
+            </div>
+        </div>
     </section>
 
+
+    <!-- Floating Documents Animation -->
+    <div class="fixed inset-0 pointer-events-none -z-10">
+        <div class="absolute top-1/4 left-1/4 w-8 h-12 bg-gradient-to-b from-blue-400 to-purple-600 opacity-20 rounded floating-element" style="animation-delay: 0s;"></div>
+        <div class="absolute top-1/3 right-1/4 w-6 h-10 bg-gradient-to-b from-cyan-400 to-blue-600 opacity-25 rounded floating-element" style="animation-delay: 1s;"></div>
+        <div class="absolute bottom-1/4 left-1/3 w-7 h-11 bg-gradient-to-b from-purple-400 to-pink-600 opacity-20 rounded floating-element" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-1/3 right-1/3 w-5 h-9 bg-gradient-to-b from-blue-400 to-cyan-600 opacity-30 rounded floating-element" style="animation-delay: 3s;"></div>
+    </div>
+
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid md:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">LawSage AI</h3>
-                    <p class="text-gray-400">Your intelligent legal assistant powered by advanced AI technology.</p>
-                </div>
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="index.html" class="hover:text-white transition-colors">Home</a></li>
-                        <li><a href="chat.html" class="hover:text-white transition-colors">Chat</a></li>
-                        <li><a href="about.html" class="hover:text-white transition-colors">About</a></li>
-                        <li><a href="contact.html" class="hover:text-white transition-colors">Contact</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Legal</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">Disclaimer</a></li>
-                </div>
-                <div>
-                    <h4 class="text-lg font-semibold mb-4">Connect</h4>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <i data-feather="twitter"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <i data-feather="linkedin"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <i data-feather="github"></i>
-                    </a>
-                </div>
+    <footer class="glass-panel py-8 px-6">
+        <div class="container mx-auto text-center">
+            <div class="flex justify-center space-x-8 mb-6">
+                <a href="#" class="text-gray-400 hover:text-cyan-300 transition-colors duration-300">Privacy Policy</a>
+                <a href="#" class="text-gray-400 hover:text-cyan-300 transition-colors duration-300">Terms of Service</a>
+                <a href="#" class="text-gray-400 hover:text-cyan-300 transition-colors duration-300">About Us</a>
+                <a href="#" class="text-gray-400 hover:text-cyan-300 transition-colors duration-300">Contact</a>
             </div>
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2024 LawSage AI. All rights reserved.</p>
-            </div>
+            <p class="text-gray-500 text-sm">© 2024 Lawverse. All rights reserved. AI-powered legal assistance.</p>
         </div>
     </footer>
 
     <script>
-        // Mobile menu functionality
-        document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
-            // Mobile menu implementation would go here
-            alert('Mobile menu would open here');
+        // Initialize Vanta.js background
+        VANTA.GLOBE({
+            el: "#vanta-background",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x00ffff,
+            color2: 0xff00ff,
+            backgroundColor: 0x000000,
+            size: 1.20
         });
-
-        // Initialize animations
+        
+        // Page transition effect
         document.addEventListener('DOMContentLoaded', function() {
-            feather.replace();
-            
-            // Add fade-in animation to elements as they come into view
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('fade-in');
-                    }
+            document.body.classList.add('page-transition');
+            setTimeout(() => {
+                document.body.style.opacity = 1;
+            }, 100);
+        });
+        
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
                 });
-            });
-
-            document.querySelectorAll('.fade-in').forEach((el) => {
-                observer.observe(el);
             });
         });
     </script>
+    <script>feather.replace();</script>
 </body>
 </html>

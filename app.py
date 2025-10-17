@@ -10,7 +10,7 @@ chat_history = []
 
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("chat.html")
+    return render_template("index.html")
 
 @app.route("/chat", methods=["POST"])
 def chat():
