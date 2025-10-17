@@ -323,6 +323,47 @@
         </div>`;
     });
 
+
+    async function loadSidebarChats() {
+    const res = await fetch("/get_chats");
+    const chats = await res.json();
+    const sidebar = document.querySelector(".space-y-2");
+    sidebar.innerHTML = "";
+
+    chats.forEach(chat => {
+      const item = document.createElement("div");
+      item.className = "sidebar-item flex items-center";
+      item.innerHTML = `
+        <i data-feather="message-circle" class="mr-3 text-cyan-400"></i>
+        <span class="truncate">${chat.title}</span>`;
+      
+      item.addEventListener("click", async () => {
+        const resp = await fetch(`/load_chat/${chat.chat_id}`, { method: "POST" });
+        const data = await resp.json();
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+
+        document.getElementById("chat-messages").innerHTML = "";
+
+        data.messages.forEach(msg => {
+          addMessage(msg.user, true);
+          addMessage(msg.ai, false);
+        });
+      });
+
+      sidebar.appendChild(item);
+    });
+    feather.replace();
+  }
+
+  // Load sidebar chats on page load
+  document.addEventListener("DOMContentLoaded", () => {
+    loadSidebarChats();
+  });
+
+
     menuBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
       sidebar.classList.toggle('fixed');

@@ -1,9 +1,13 @@
 from Lawverse.pipeline.rag_pipeline import rag_components, create_chat_chian
+from Lawverse.memory.langchain_memory import ChatMemory
+from Lawverse.utils.config import MEMORY_DIR
 from Lawverse.logger import logging
 from Lawverse.exception import ExceptionHandle
 from flask import Flask, render_template, request, jsonify, session
 import sys
 import os
+import glob
+import json
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET")
@@ -57,6 +61,36 @@ def rag_response():
     except Exception as e:
         logging.error(f"Chat error: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/get_chat', methods=["GET"])
+def get_chats():
+    chats = []
+    for file_path in glob.glob(f"{MEMORY_DIR}/*.json"):
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            chats.append({
+                "chat_id": data.get("chat_id"),
+                "title": data.get("title", f"Chat-{data.get('chat_id')}")
+            })
+    
+    chats.sort(key=lambda x : x['chat_id'], reverse=True)
+    return jsonify(chats)
+
+
+@app.route("/load_chat/<chat_id>", methods=["POST"])
+def load_chat(chat_id):
+    if not os.path.exists(os.path.join(MEMORY_DIR, f"{chat_id}.json")):
+        return jsonify({"error": "Chat not found"}), 404
+    
+    chain, memory_manager = create_chat_chian(BASE_COMPONENTS, chat_id=chat_id)
+    active_chains[memory_manager.chat_id] = (chain, memory_manager)
+    session["chat_id"] = memory_manager.chat_id
+    
+    messages = [
+        {"user" : msg["user"], "ai" : msg["ai"]}
+        for msg in memory_manager.memory.chat_memory.messages[::2]
+    ]
+    return jsonify({"chat_id": chat_id, "title": memory_manager._get_title(), "messages": messages})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=7860)
