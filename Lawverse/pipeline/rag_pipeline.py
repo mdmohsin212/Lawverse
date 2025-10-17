@@ -81,7 +81,7 @@ def create_chat_chian(components, chat_id=None):
         
         chain = ConversationalRetrievalChain.from_llm(
             llm=llm,
-            retriever=components["retriver"],
+            retriever=components["retriever"],
             combine_docs_chain_kwargs={"prompt": components["qa_prompt"]},
             memory=memory,
             return_source_documents=True
