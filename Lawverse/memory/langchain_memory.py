@@ -43,6 +43,7 @@ class ChatMemory:
             data = {
                 "chat_id": self.chat_id,
                 "title": self._get_title(),
+                "last_updated": datetime.now().isoformat(),
                 "history": [
                     {"user": messages[i].content, "ai": messages[i + 1].content}
                     for i in range(0, len(messages) - 1, 2)

@@ -11,7 +11,6 @@
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Space+Grotesk:wght@400;600&display=swap"
       rel="stylesheet"
     />
-
     <style>
       * {
         margin: 0;
@@ -111,13 +110,41 @@
         padding: 12px 16px;
         border-radius: 12px;
         margin-bottom: 8px;
-        cursor: pointer;
         transition: all 0.3s ease;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .sidebar-item-content {
+        flex-grow: 1;
+        overflow: hidden;
+        cursor: pointer;
       }
 
       .sidebar-item:hover {
         background: rgba(0, 100, 200, 0.2);
         box-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+      }
+
+      .delete-btn {
+        color: #9ca3af;
+        opacity: 0;
+        transition: all 0.3s ease;
+        padding: 4px;
+        border-radius: 4px;
+        flex-shrink: 0;
+        margin-left: 8px;
+      }
+
+      .sidebar-item:hover .delete-btn {
+        opacity: 1;
+      }
+
+      .delete-btn:hover {
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
       }
 
       .glow-text {
@@ -136,9 +163,11 @@
       .typing-dot:nth-child(1) {
         animation-delay: 0s;
       }
+
       .typing-dot:nth-child(2) {
         animation-delay: 0.2s;
       }
+
       .typing-dot:nth-child(3) {
         animation-delay: 0.4s;
       }
@@ -177,6 +206,7 @@
     <div class="flex h-full">
       <div class="glass-panel w-64 flex-shrink-0 hidden md:flex flex-col p-4">
         <button
+          id="new-chat-btn"
           class="neon-button w-full mb-6 flex items-center justify-center"
         >
           <i data-feather="plus" class="mr-2 w-4 h-4"></i>
@@ -260,13 +290,14 @@
     >
       <i data-feather="menu"></i>
     </button>
-    
+
     <script>
       feather.replace();
       document.addEventListener("DOMContentLoaded", function () {
         const chatMessages = document.getElementById("chat-messages");
         const messageInput = document.getElementById("message-input");
         const sendButton = document.getElementById("send-button");
+        const newChatButton = document.getElementById("new-chat-btn");
         const sidebar = document.querySelector(".glass-panel.w-64");
         const menuBtn = document.getElementById("menu-btn");
 
@@ -276,19 +307,19 @@
             isUser ? "user-message" : "ai-message"
           }`;
           messageDiv.innerHTML = `
-        <div class="flex items-start">
-          <div class="w-8 h-8 rounded-full ${
-            isUser
-              ? "bg-gradient-to-r from-gray-400 to-gray-600"
-              : "bg-gradient-to-r from-blue-500 to-cyan-500"
-          } mr-3 flex-shrink-0"></div>
-          <div>
-            <p class="font-semibold ${
-              isUser ? "text-gray-300" : "text-cyan-300"
-            } mb-1">${isUser ? "You" : "Lawverse AI"}</p>
-            <p>${message}</p>
-          </div>
-        </div>`;
+          <div class="flex items-start">
+            <div class="w-8 h-8 rounded-full ${
+              isUser
+                ? "bg-gradient-to-r from-gray-400 to-gray-600"
+                : "bg-gradient-to-r from-blue-500 to-cyan-500"
+            } mr-3 flex-shrink-0"></div>
+            <div>
+              <p class="font-semibold ${
+                isUser ? "text-gray-300" : "text-cyan-300"
+              } mb-1">${isUser ? "You" : "Lawverse AI"}</p>
+              <p>${message}</p>
+            </div>
+          </div>`;
           chatMessages.appendChild(messageDiv);
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -297,12 +328,12 @@
           const typing = document.createElement("div");
           typing.className = "flex items-center p-4";
           typing.innerHTML = `
-        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3"></div>
-        <div class="flex">
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-        </div>`;
+          <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3"></div>
+          <div class="flex">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>`;
           chatMessages.appendChild(typing);
           chatMessages.scrollTop = chatMessages.scrollHeight;
           return typing;
@@ -329,6 +360,7 @@
 
             if (data.answer) {
               addMessage(data.answer, false);
+              loadSidebarChats();
             } else if (data.error) {
               addMessage(`⚠️ Error: ${data.error}`, false);
             } else {
@@ -341,27 +373,25 @@
         }
 
         sendButton.addEventListener("click", sendMessage);
-        messageInput.addEventListener(
-          "keypress",
-          (e) => e.key === "Enter" && sendMessage()
-        );
+        messageInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") sendMessage();
+        });
 
-        document
-          .querySelector(".neon-button")
-          .addEventListener("click", async () => {
-            const res = await fetch("/new_chat", { method: "POST" });
-            const data = await res.json();
-            document.getElementById("chat-messages").innerHTML = `
-        <div class="message-bubble ai-message">
-          <div class="flex items-start">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3 flex-shrink-0"></div>
-            <div>
-              <p class="font-semibold text-cyan-300 mb-1">Lawverse AI</p>
-              <p>New chat started! You can begin your next legal query.</p>
+        newChatButton.addEventListener("click", async () => {
+          const res = await fetch("/new_chat", { method: "POST" });
+          const data = await res.json();
+          document.getElementById("chat-messages").innerHTML = `
+          <div class="message-bubble ai-message">
+            <div class="flex items-start">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3 flex-shrink-0"></div>
+              <div>
+                <p class="font-semibold text-cyan-300 mb-1">Lawverse AI</p>
+                <p>New chat started! You can begin your next legal query.</p>
+              </div>
             </div>
-          </div>
-        </div>`;
-          });
+          </div>`;
+          loadSidebarChats();
+        });
 
         async function loadSidebarChats() {
           const res = await fetch("/get_chats");
@@ -372,11 +402,21 @@
           chats.forEach((chat) => {
             const item = document.createElement("div");
             item.className = "sidebar-item flex items-center";
-            item.innerHTML = `
-        <i data-feather="message-circle" class="mr-3 text-cyan-400"></i>
-        <span class="truncate">${chat.title}</span>`;
 
-            item.addEventListener("click", async () => {
+            item.innerHTML = `
+            <div class="sidebar-item-content flex items-center truncate">
+              <i data-feather="message-circle" class="mr-3 text-cyan-400 flex-shrink-0"></i>
+              <span class="truncate">${chat.title}</span>
+            </div>
+            <button class="delete-btn" title="Delete chat">
+              <i data-feather="more-vertical" class="w-4 h-4"></i>
+            </button>
+            `;
+
+            const contentBtn = item.querySelector(".sidebar-item-content");
+            const deleteBtn = item.querySelector(".delete-btn");
+
+            contentBtn.addEventListener("click", async () => {
               const resp = await fetch(`/load_chat/${chat.chat_id}`, {
                 method: "POST",
               });
@@ -391,10 +431,40 @@
                 addMessage(msg.user, true);
                 addMessage(msg.ai, false);
               });
+
+              if (!sidebar.classList.contains("hidden")) {
+                menuBtn.click();
+              }
+            });
+
+            deleteBtn.addEventListener("click", async (e) => {
+              e.stopPropagation();
+              if (!confirm(`Are you sure you want to delete "${chat.title}"?`))
+                return;
+
+              try {
+                const res = await fetch(`/delete_chat/${chat.chat_id}`, {
+                  method: "DELETE",
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                  alert(`Error: ${data.error}`);
+                } else if (data.success) {
+                  if (data.was_active) {
+                    newChatButton.click();
+                  } else {
+                    loadSidebarChats();
+                  }
+                }
+              } catch (error) {
+                alert(`Connection error: ${error.message}`);
+              }
             });
 
             sidebarList.appendChild(item);
           });
+
           feather.replace();
         }
 

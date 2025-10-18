@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 
 dir = '/tmp/logs'
+# dir = '/logs'
 os.makedirs(dir, exist_ok=True)
 
 LOG_FILE = f"{datetime.now().strftime('%m_%d_%Y_%H_%M_%S')}.log"

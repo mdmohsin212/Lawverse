@@ -9,6 +9,7 @@ from Lawverse.pipeline.llm_loader import llm
 from Lawverse.memory.langchain_memory import ChatMemory
 from Lawverse.logger import logging
 from Lawverse.exception import ExceptionHandle
+from Lawverse.utils.config import FAISS_PATH
 
 from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts import PromptTemplate
@@ -30,7 +31,7 @@ def rag_components():
             ]
         logging.info(f"Bilingual chunks created: {len(bilingual_chunks)}")
         
-        dense_db_path, bm25 = build_index(bilingual_chunks)
+        dense_db_path, bm25 = build_index(bilingual_chunks, FAISS_PATH)
         logging.info("Dense + BM25 indexes built successfully.")
         
         embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')

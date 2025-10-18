@@ -25,6 +25,9 @@ def chat():
         chain, memory_manager = create_chat_chian(BASE_COMPONENTS)
         active_chains[memory_manager.chat_id] = (chain, memory_manager)
         session['chat_id'] = memory_manager.chat_id
+        
+        memory_manager.save_memory()
+        
     return render_template("chat.html")
 
 @app.route("/new_chat", methods=["POST"])
@@ -67,10 +70,11 @@ def get_chats():
             data = json.load(f)
             chats.append({
                 "chat_id": data.get("chat_id"),
+                "last_updated": data.get("last_updated"),
                 "title": data.get("title", f"Chat-{data.get('chat_id')}")
             })
     
-    chats.sort(key=lambda x : x['chat_id'], reverse=True)
+    chats.sort(key=lambda x: x.get('last_updated', x['chat_id']), reverse=True)
     return jsonify(chats)
 
 
@@ -78,16 +82,25 @@ def get_chats():
 def load_chat(chat_id):
     if not os.path.exists(os.path.join(MEMORY_DIR, f"{chat_id}.json")):
         return jsonify({"error": "Chat not found"}), 404
-    
+
     chain, memory_manager = create_chat_chian(BASE_COMPONENTS, chat_id=chat_id)
     active_chains[memory_manager.chat_id] = (chain, memory_manager)
     session["chat_id"] = memory_manager.chat_id
-    
-    messages = [
-        {"user" : msg["user"], "ai" : msg["ai"]}
-        for msg in memory_manager.memory.chat_memory.messages[::2]
-    ]
-    return jsonify({"chat_id": chat_id, "title": memory_manager._get_title(), "messages": messages})
 
+    messages_list = memory_manager.memory.chat_memory.messages
+    messages = []
+
+    for i in range(0, len(messages_list), 2):
+        user_msg = messages_list[i].content if i < len(messages_list) else None
+        ai_msg = messages_list[i + 1].content if i + 1 < len(messages_list) else ""
+        if user_msg:
+            messages.append({"user": user_msg, "ai": ai_msg})
+
+    return jsonify({
+        "chat_id": chat_id,
+        "title": memory_manager._get_title(),
+        "messages": messages
+    })
+    
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=7860)
