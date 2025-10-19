@@ -1,15 +1,12 @@
 import sys
 import os
 import gdown
-from Lawverse.utils.config import PDF_DIR, PDF_URL, GDOWN_CACHE
+from Lawverse.utils.config import PDF_DIR, PDF_URL
 from Lawverse.logger import logging
 from Lawverse.exception import ExceptionHandle
 
 def fetch_file(urls=PDF_URL):
     try:
-        os.environ["GDOWN_CACHE_DIR"] = str(GDOWN_CACHE)
-        os.makedirs(GDOWN_CACHE, exist_ok=True)
-        
         paths = []
         for url in urls:
             file_id = url.split('/d/')[1].split('/')[0]
