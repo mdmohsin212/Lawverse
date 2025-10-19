@@ -10,16 +10,16 @@ from pathlib import Path
 # FAISS_PATH = DATA_DIR / "faiss_index"
 
 # ---- For Hugging spaces ----
-# BASE_DIR = Path(__file__).resolve().parent.parent
-# DATA_DIR = Path("/tmp/lawverse_data")
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = Path("/tmp/lawverse_data")
 
-DATA_DIR = Path("/data/lawverse_data")
 PDF_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "process"
 MEMORY_DIR = DATA_DIR / "memory/store"
+
 FAISS_PATH = DATA_DIR / "faiss_index"
 
-for data in [DATA_DIR, PDF_DIR, MEMORY_DIR, PROCESSED_DIR]:
+for data in [DATA_DIR, PDF_DIR, PROCESSED_DIR, MEMORY_DIR]:
     os.makedirs(data, exist_ok=True)
     
 PDF_URL = [
