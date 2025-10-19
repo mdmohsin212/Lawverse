@@ -34,5 +34,3 @@ noisy_libs = [
 
 for lib in noisy_libs:
     logging.getLogger(lib).setLevel(logging.WARNING)
-
-logging.getLogger(__name__).info("✅ Logger initialized successfully with clean output.")

@@ -12,6 +12,8 @@ RUN mkdir -p /app/.cache \
 ENV HF_HOME=/app/.cache
 ENV TRANSFORMERS_CACHE=/app/.cache
 
+VOLUME [ "/data" ]
+
 COPY . .
 
 EXPOSE 10000

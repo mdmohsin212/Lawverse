@@ -2,7 +2,7 @@ import os
 import sys
 import json
 from datetime import datetime
-from langchain.memory import ConversationBufferMemory
+from langchain_classic.memory import ConversationBufferMemory
 from Lawverse.logger import logging
 from Lawverse.exception import ExceptionHandle
 from Lawverse.utils.config import MEMORY_DIR
@@ -59,7 +59,7 @@ class ChatMemory:
     def _get_title(self):
         if self.memory.chat_memory.messages:
             return self.memory.chat_memory.messages[0].content[:30]
-        return f"Chat - {self.chat_id}"
+        return f"Hi, ask your query"
 
     def clear_memory(self):
         try:
