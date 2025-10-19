@@ -14,8 +14,6 @@ from pathlib import Path
 # DATA_DIR = Path("/tmp/lawverse_data")
 
 DATA_DIR = Path("/data/lawverse_data")
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-
 PDF_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "process"
 MEMORY_DIR = DATA_DIR / "memory/store"
