@@ -9,6 +9,8 @@ pathlib
 numpy
 rank_bm25
 Flask
+flask_admin
+werkzeug
 langdetect
 deep_translator
 sentence-transformers
