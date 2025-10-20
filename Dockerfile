@@ -8,6 +8,7 @@ RUN pip install -r requirements.txt
 
 RUN mkdir -p /.cache/gdown && chmod -R 777 /.cache
 RUN mkdir -p /app/.cache && chmod -R 777 /app/.cache
+RUN mkdir -p /app/api/instance && chmod -R 777 /app/api/instance
 
 RUN mkdir -p /app/.cache
 ENV HF_HOME=/app/.cache
