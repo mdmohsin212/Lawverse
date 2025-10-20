@@ -10,6 +10,7 @@ numpy
 rank_bm25
 Flask
 flask_admin
+flask_sqlalchemy
 werkzeug
 langdetect
 deep_translator

@@ -19,6 +19,9 @@ db.init_app(app)
 admin.init_app(app)
 app.register_blueprint(auth_bp)
 
+with app.app_context():
+    db.create_all()
+
 BASE_COMPONENTS = rag_components()
 logging.info("Lawverse RAG components ready.")
 
