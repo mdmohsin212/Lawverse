@@ -19,4 +19,4 @@ COPY . .
 
 EXPOSE 10000
 
-CMD ["python", "app.py"]
+CMD ["python", "-m", "api.app"]

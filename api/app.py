@@ -2,23 +2,39 @@ from Lawverse.pipeline.rag_pipeline import rag_components, create_chat_chian
 from flask import Flask, render_template, request, jsonify, session
 from Lawverse.utils.config import MEMORY_DIR
 from Lawverse.logger import logging
+from api.auth import auth_bp, login_required
+from api.models import db
 import json
 import glob
 import os
+from api.admin import admin
 
-app = Flask(__name__)
-app.secret_key = os.getenv("SECRET")
+app = Flask(__name__, template_folder="../templates")
+# app.secret_key = os.getenv("SECRET")
+app.secret_key = "lawverse-secret"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
+admin.init_app(app)
+app.register_blueprint(auth_bp)
 
 BASE_COMPONENTS = rag_components()
 logging.info("Lawverse RAG components ready.")
 
 active_chains = {}
 
+@app.route("/debug_session")
+def debug_session():
+    print("Session Data:", dict(session))
+    return "Check your console!"
+
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
 
 @app.route("/chat", methods=["GET"])
+@login_required
 def chat():
     chat_id = session.get("chat_id")
     if not chat_id or chat_id not in active_chains:

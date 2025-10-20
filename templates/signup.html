@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lawverse Nexus Portal</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#6366f1",
+              secondary: "#8b5cf6",
+              accent: "#cbd5e1",
+            },
+            fontFamily: {
+              orbitron: ["Orbitron", "sans-serif"],
+              space: ["Space Grotesk", "sans-serif"],
+            },
+            animation: {
+              "pulse-glow":
+                "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              float: "float 6s ease-in-out infinite",
+            },
+            keyframes: {
+              "pulse-glow": {
+                "0%, 100%": {
+                  boxShadow:
+                    "0 0 5px #6366f1, 0 0 10px #6366f1, 0 0 15px #6366f1",
+                },
+                "50%": {
+                  boxShadow:
+                    "0 0 10px #6366f1, 0 0 20px #6366f1, 0 0 30px #6366f1",
+                },
+              },
+              float: {
+                "0%, 100%": { transform: "translateY(0px)" },
+                "50%": { transform: "translateY(-10px)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        background: linear-gradient(
+          135deg,
+          #000000 0%,
+          #1e1b4b 50%,
+          #000000 100%
+        );
+        overflow-x: hidden;
+      }
+
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      }
+
+      .neon-input {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(99, 102, 241, 0.5);
+        transition: all 0.3s ease;
+        padding: 1rem 1rem 0.5rem 1rem;
+        font-size: 1.05rem;
+      }
+
+      .neon-input:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+      }
+
+      .floating-label {
+        transition: all 0.3s ease;
+        pointer-events: none;
+        top: 70%;
+        transform: translateY(-50%);
+      }
+
+      .neon-input:focus + .floating-label,
+      .neon-input:not(:placeholder-shown) + .floating-label {
+        top: 0.6rem;
+        transform: translateY(-50%) scale(0.9);
+        color: #6366f1;
+        text-shadow: 0 0 5px currentColor;
+      }
+
+      .neon-button {
+        background: linear-gradient(45deg, #6366f1, #8b5cf6);
+        transition: all 0.3s ease;
+      }
+
+      .neon-button:hover {
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.7);
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen flex items-center justify-center">
+    <div
+      id="portal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 opacity-0 pointer-events-none transition-opacity duration-700"
+      style="display: none;"
+    >
+      <div class="text-center">
+        <div
+          class="w-32 h-32 mx-auto mb-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center animate-pulse"
+        >
+          <i data-feather="check" class="w-16 h-16 text-white"></i>
+        </div>
+        <h2 class="text-3xl font-orbitron font-bold text-white mb-4">
+          Access Granted
+        </h2>
+        <p class="text-accent font-space text-lg">
+          Entering Lawverse AI Portal...
+        </p>
+      </div>
+    </div>
+    <div id="vanta-bg" class="fixed inset-0 z-0"></div> 
+    <a href="{{ url_for('home') }}" class="fixed top-6 left-6 z-50 group">
+      <div
+        class="flex items-center space-x-2 text-accent hover:text-primary transition-all duration-300"
+      >
+        <i
+          data-feather="arrow-left"
+          class="w-5 h-5 group-hover:scale-110 transition-transform"
+        ></i>
+        <span class="font-space font-medium">Return to Home</span>
+      </div>
+    </a>
+{% with messages = get_flashed_messages() %} 
+      {% if messages %}
+        <div id="flash-message" class="fixed top-6 right-6 z-50 p-3 rounded-lg text-sm font-space transition-opacity duration-700 
+        {% if 'successful' in messages[0]|lower %}bg-green-500/20 text-green-300 border border-green-500
+        {% else %}bg-red-500/20 text-red-300 border border-red-500{% endif %}">
+          {% for message in messages %}
+            {{ message }}
+          {% endfor %}
+        </div>
+
+        <script>
+          
+          document.addEventListener("DOMContentLoaded", () => {
+            const flashMsg = document.getElementById("flash-message");
+
+            {% if 'successful' in messages[0]|lower %}
+              if (flashMsg) flashMsg.style.display = 'none';
+              const portal = document.getElementById("portal");
+              if (portal) {
+                portal.style.display = "flex";
+                portal.classList.remove("opacity-0", "pointer-events-none");
+                portal.classList.add("opacity-100");
+              }
+              
+              setTimeout(() => {
+                window.location.href = "{{ url_for('chat') }}";
+              }, 2000); 
+
+            {% else %}
+              setTimeout(() => {
+                if (flashMsg) flashMsg.style.opacity = "0";
+              }, 1500);
+            {% endif %}
+          });
+        </script>
+      {% endif %} 
+    {% endwith %}
+
+
+
+
+    <div class="relative z-10 w-full max-w-6xl mx-auto px-4">
+      <div class="text-center mb-12 animate-float">
+        <div class="inline-flex items-center space-x-3">
+          <div
+            class="w-12 h-12 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center"
+          >
+            <i data-feather="scale" class="w-6 h-6 text-white"></i>
+          </div>
+          <h1
+            class="text-4xl md:text-5xl font-orbitron font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-secondary"
+          >
+            LAWVERSE
+          </h1>
+        </div>
+        <p class="mt-4 text-accent font-space text-lg">
+          AI-Powered Legal Knowledge Assistant
+        </p>
+      </div>
+
+      <div
+        class="glass-panel rounded-2xl p-8 transform transition-all duration-500 hover:scale-105"
+      >
+        <div class="text-center mb-8">
+          <div
+            class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center"
+          >
+            <i data-feather="user-plus" class="w-8 h-8 text-white"></i>
+          </div>
+          <h2 class="text-2xl font-orbitron font-semibold text-white mb-2">
+            Create your Lawverse Account
+          </h2>
+          <p class="text-accent font-space">
+            Join the future of legal assistance
+          </p>
+        </div>
+
+        <form
+          class="space-y-6"
+          method="POST"
+          action="{{ url_for('auth.signup') }}"
+        >
+          <div class="grid grid-cols-2 gap-4">
+            <div class="relative">
+              <input
+                name="first_name"
+                type="text"
+                placeholder=" "
+                class="neon-input w-full px-4 py-3 rounded-lg text-white font-space placeholder-transparent"
+                required
+              />
+              <label
+                class="floating-label absolute left-4 top-5 text-accent font-space"
+                >First Name</label
+              >
+            </div>
+            <div class="relative">
+              <input
+                name="last_name"
+                type="text"
+                placeholder=" "
+                class="neon-input w-full px-4 py-3 rounded-lg text-white font-space placeholder-transparent"
+                required
+              />
+              <label
+                class="floating-label absolute left-4 top-5 text-accent font-space"
+                >Last Name</label
+              >
+            </div>
+          </div>
+
+          <div class="relative">
+            <input
+              name="email"
+              type="email"
+              placeholder=" "
+              class="neon-input w-full px-4 py-3 rounded-lg text-white font-space placeholder-transparent"
+              required
+            />
+            <label
+              class="floating-label absolute left-4 top-5 text-accent font-space"
+              >Email</label
+            >
+            <i
+              data-feather="mail"
+              class="absolute right-4 top-3 text-accent w-5 h-5"
+            ></i>
+          </div>
+
+          <div class="relative">
+            <input
+              name="password"
+              type="password"
+              placeholder=" "
+              class="neon-input w-full px-4 py-3 rounded-lg text-white font-space placeholder-transparent"
+              required
+            />
+            <label
+              class="floating-label absolute left-4 top-5 text-accent font-space"
+              >Password</label
+            >
+            <i
+              data-feather="lock"
+              class="absolute right-4 top-3 text-accent w-5 h-5"
+            ></i>
+          </div>
+
+          <div class="relative">
+            <input
+              name="confirm_password"
+              type="password"
+              placeholder=" "
+              class="neon-input w-full px-4 py-3 rounded-lg text-white font-space placeholder-transparent"
+              required
+            />
+            <label
+              class="floating-label absolute left-4 top-5 text-accent font-space"
+              >Confirm Password</label
+            >
+            <i
+              data-feather="shield"
+              class="absolute right-4 top-3 text-accent w-5 h-5"
+            ></i>
+          </div>
+
+          <button
+            type="submit"
+            class="neon-button w-full py-3 rounded-lg text-white font-orbitron font-semibold animate-pulse-glow"
+          >
+            Create Account
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <script>
+      VANTA.NET({
+        el: "#vanta-bg",
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        color: 0x6366f1,
+        backgroundColor: 0x000000,
+        points: 12.0,
+        maxDistance: 20.0,
+        spacing: 15.0,
+      });
+
+      document.addEventListener("DOMContentLoaded", () => {
+        feather.replace();
+        document.querySelector(".neon-button").addEventListener("click", () => {
+          const portal = document.getElementById("portal");
+          portal.classList.remove("opacity-0", "pointer-events-none");
+          portal.classList.add("opacity-100");
+          setTimeout(() => (window.location.href = "/chat"), 2000);
+        });
+      });
+    </script>
+  </body>
+</html>
