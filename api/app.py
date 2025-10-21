@@ -27,11 +27,6 @@ logging.info("Lawverse RAG components ready.")
 
 active_chains = {}
 
-@app.route("/debug_session")
-def debug_session():
-    print("Session Data:", dict(session))
-    return "Check your console!"
-
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
@@ -54,7 +49,7 @@ def new_chat():
     chain, memory_manager = create_chat_chian(BASE_COMPONENTS)
     active_chains[memory_manager.chat_id] = (chain, memory_manager)
     session['chat_id'] = memory_manager.chat_id
-    return jsonify({"chat_id" : memory_manager.chat_id, "title" : memory_manager._get_title()})
+    return jsonify({"chat_id" : memory_manager.chat_id,"title" : memory_manager._get_title()})
 
 @app.route("/response", methods=["POST"])
 def rag_response():
@@ -84,14 +79,18 @@ def rag_response():
 @app.route('/get_chats', methods=["GET"])
 def get_chats():
     chats = []
+    user_id = session.get("user_id")
+    
     for file_path in glob.glob(f"{MEMORY_DIR}/*.json"):
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-            chats.append({
-                "chat_id": data.get("chat_id"),
-                "last_updated": data.get("last_updated"),
-                "title": data.get("title", f"Chat-{data.get('chat_id')}")
-            })
+            
+            if data.get("user_id") == user_id:
+                chats.append({
+                    "chat_id": data.get("chat_id"),
+                    "last_updated": data.get("last_updated"),
+                    "title": data.get("title", f"Chat-{data.get('chat_id')}")
+                })
     
     chats.sort(key=lambda x: x.get('last_updated', x['chat_id']), reverse=True)
     return jsonify(chats)
@@ -120,6 +119,26 @@ def load_chat(chat_id):
         "title": memory_manager._get_title(),
         "messages": messages
     })
+
+@app.route("/delete_chat/<chat_id>", methods=['DELETE'])
+@login_required
+def delete_chat(chat_id):
+    try:
+        user_id = session.get("user_id")
+        memory_path = os.path.join(MEMORY_DIR, f"user_{user_id}_{chat_id}.json")
+        
+        os.remove(memory_path)
+        logging.info(f"Deleted chat for user {user_id}, chat_id: {chat_id}")
+        
+        was_active = chat_id in active_chains
+        if was_active:
+            del active_chains[chat_id]
+            
+        return jsonify({"success": True, "was_active": was_active}), 200
     
+    except Exception as e:
+        logging.error(f"Error deleting chat {chat_id}")
+        return jsonify({"error": "Internal Server Error"}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=7860)

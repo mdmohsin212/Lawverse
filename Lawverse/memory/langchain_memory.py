@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+from flask import session
 from datetime import datetime
 from langchain_classic.memory import ConversationBufferMemory
 from Lawverse.logger import logging
@@ -12,7 +13,7 @@ class ChatMemory:
     def __init__(self, chat_id=None):
         try:
             self.chat_id = chat_id or self._create_new_chat_id()
-            self.memory_file = os.path.join(MEMORY_DIR, f"{self.chat_id}.json")
+            self.memory_file = os.path.join(MEMORY_DIR, f"user_{session.get('user_id')}_{self.chat_id}.json")
             self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key="answer")
             self._load_memory()
             logging.info(f"ChatMemory initialized for chat_id: {self.chat_id}")
@@ -40,8 +41,10 @@ class ChatMemory:
     def save_memory(self):
         try:
             messages = self.memory.chat_memory.messages
+            user_id = session.get("user_id")
             data = {
                 "chat_id": self.chat_id,
+                "user_id" : user_id,
                 "title": self._get_title(),
                 "last_updated": datetime.now().isoformat(),
                 "history": [
