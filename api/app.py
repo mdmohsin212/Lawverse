@@ -2,7 +2,7 @@ from Lawverse.pipeline.rag_pipeline import rag_components, create_chat_chian
 from flask import Flask, render_template, request, jsonify, session
 from Lawverse.utils.config import MEMORY_DIR
 from Lawverse.logger import logging
-from Lawverse.monitoring.dashboard import monitor_bp
+# from Lawverse.monitoring.dashboard import monitor_bp
 from api.auth import auth_bp, login_required
 from api.models import db
 import markdown
@@ -20,7 +20,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 admin.init_app(app)
 app.register_blueprint(auth_bp)
-app.register_blueprint(monitor_bp)
+# app.register_blueprint(monitor_bp)
 
 with app.app_context():
     db.create_all()
