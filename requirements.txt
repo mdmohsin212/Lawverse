@@ -8,6 +8,7 @@ openai
 pathlib
 pandas
 numpy
+markdown
 datasets
 rank_bm25
 Flask
