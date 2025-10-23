@@ -8,6 +8,8 @@ openai
 pathlib
 pandas
 numpy
+ragas
+datasets
 rank_bm25
 Flask
 flask_admin
