@@ -28,6 +28,7 @@ def signup():
         
         session['user_id'] = user.id
         session['user_name'] = user.first_name
+        session['last_name'] = user.last_name
 
         flash("Login Successful!")
         return render_template("signup.html")
@@ -44,6 +45,7 @@ def login():
         if user and user.check_password(password):
             session['user_id'] = user.id
             session['user_name'] = user.first_name
+            session['last_name'] = user.last_name
             flash("Login Successful!")
             return render_template("login.html")
         else:

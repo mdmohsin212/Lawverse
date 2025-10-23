@@ -228,7 +228,7 @@
               class="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"
             ></div>
             <div class="ml-3">
-              <p class="text-sm font-medium">Legal User</p>
+              <p class="text-sm font-medium">{{ session.get('user_name') }} {{ session.get('last_name') }}</p>
             </div>
           </div>
         </div>
