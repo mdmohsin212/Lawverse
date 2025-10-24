@@ -3,9 +3,7 @@ langchain
 langchain_community
 langchain_core
 langchain_classic
-typing
 openai
-pathlib
 pandas
 numpy
 markdown
@@ -22,5 +20,3 @@ faiss-cpu
 langchain_text_splitters
 langchain_huggingface
 gdown
-collections
-pickle
