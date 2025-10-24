@@ -13,6 +13,7 @@ Flask
 flask_admin
 flask_sqlalchemy
 werkzeug
+nltk
 langdetect
 deep_translator
 sentence-transformers
