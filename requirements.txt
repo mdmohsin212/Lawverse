@@ -1,4 +1,4 @@
-PyPDF2
+pymupdf
 langchain
 langchain_community
 langchain_core
@@ -22,3 +22,5 @@ faiss-cpu
 langchain_text_splitters
 langchain_huggingface
 gdown
+collections
+pickle

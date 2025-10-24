@@ -9,7 +9,7 @@ def build_dense_index(chunks):
         embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
         
         logging.info("Building FAISS vector store from text chunks...")
-        db = FAISS.from_texts(chunks, embeddings)
+        db = FAISS.from_documents(chunks, embeddings)
         
         logging.info(f"FAISS dense index successfully built with {len(chunks)} chunks.")
         return db

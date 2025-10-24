@@ -8,7 +8,7 @@ import os
 def build_index(chunks, FAISS_PATH):
     try:
         logging.info("Building sparse BM25 index...")
-        sparse_db = build_sparse_index(chunks)
+        sparse_db = build_sparse_index(chunks, k1=1.5, b=0.8)
         
         logging.info(f"Successfully built dense and sparse indexes.")
         
@@ -16,7 +16,7 @@ def build_index(chunks, FAISS_PATH):
             logging.info(f"Dense FAISS index already exists at: {FAISS_PATH}")
             return FAISS_PATH, sparse_db
         
-        logging.info("Building New dense FAISS index..."    )
+        logging.info("Building New dense FAISS index...")
         dense_db = build_dense_index(chunks)
         
         dense_db.save_local(FAISS_PATH)

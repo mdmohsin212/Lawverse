@@ -1,6 +1,6 @@
 from Lawverse.datapipeline.ingest import fetch_file
 from Lawverse.datapipeline.dataset_loader import load_pdf_text
-from Lawverse.datapipeline.preprocess import chunk_text, translate_chunks
+from Lawverse.datapipeline.preprocess import chunk_documents, create_bilingual_chunks
 from Lawverse.retrieval.indexer import build_index
 from Lawverse.retrieval.hybrid import HybridRetriever
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -14,61 +14,92 @@ from Lawverse.utils.config import FAISS_PATH
 from langchain_classic.chains.conversational_retrieval.base import ConversationalRetrievalChain
 from langchain_core.prompts import PromptTemplate
 import sys
+import pickle
 
 def rag_components():
     try:
         pdf_path = fetch_file()
-        text = load_pdf_text(pdf_path)
+        documents = load_pdf_text(pdf_path)
         
-        chunks = chunk_text(text, 1200, 300)
+        chunks = chunk_documents(documents, 1200, 300)
         
-        chunks_translated_path = translate_chunks(chunks)
-        logging.info("Chunks translated successfully.")
+        bilingual_chunks_path = create_bilingual_chunks(chunks)
         
-        with open(chunks_translated_path, "r", encoding="utf-8") as f:
-            chunks_translated = [line.strip() for line in f if line.strip()]    
+        logging.info(f"Loading processed chunks from {bilingual_chunks_path}")
         
-        bilingual_chunks = [
-                f"EN: {en}\nBN: {bn}"
-                for en, bn in zip(chunks, chunks_translated)
-            ]
-        logging.info(f"Bilingual chunks created: {len(bilingual_chunks)}")
+        with open(bilingual_chunks_path, "rb") as f:
+            bilingual_chunks = pickle.load(f)
+            
+        logging.info(f"Successfully loaded {len(bilingual_chunks)} bilingual chunks.")
         
         dense_db_path, bm25 = build_index(bilingual_chunks, FAISS_PATH)
         logging.info("Dense + BM25 indexes built successfully.")
         
         embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
+        
         dense_db = FAISS.load_local(dense_db_path, embeddings, allow_dangerous_deserialization=True)
         logging.info(f"FAISS index loaded successfully from '{dense_db_path}' with {dense_db.index.ntotal} vectors.")
         
-        retriever = HybridRetriever(faiss_db=dense_db, bm25=bm25, chunks=bilingual_chunks, top_k=2, alpha=0.5)
+        retriever = HybridRetriever(faiss_db=dense_db, bm25=bm25, chunks=chunks, initial_top_k=25, final_top_k=5)
+        retriever.init_cross_encoder()
+        
         logging.info("Hybrid retriever initialized successfully with dense and sparse indexes.")
                 
         qa_prompt = PromptTemplate(
             input_variables=["context", "question"],
             template="""
-            You are a helpful **legal assistant** specializing in **Bangladeshi law**, capable of communicating in both **English and Bengali**.
+            You are an expert Legal Analyst specializing in **Bangladeshi law**. Your goal is to provide accurate, objective, and verifiable answers to legal questions based solely on the provided context.
+
+            =================================================================
+            ROLE & TONE
+            - Formal, analytical, and dispassionate.
+            - Language must be clear, precise, and unambiguous.
+            - Avoid speculation, opinion, or colloquial expressions.
             
-            You must answer questions based *only* on the provided context, which contains information from three different laws:
-            1.  The Companies Act, 1994
-            2.  The Bangladesh Labour Act, 2006
-            3.  The Digital Security Act, 2018 (or "Digital Security Law")
+            =================================================================
+            SPECIAL BEHAVIOR
+            - If the user message is a greeting (e.g., "hi", "hello", "hey", "assalamu alaikum"), respond politely and briefly (e.g., "Hello! How can I assist you with a legal question today?").
+            - If the user message is a polite closure (e.g., "thanks", "bye", "thank you"), respond courteously (e.g., "You're welcome! Feel free to ask another legal question anytime.").
+            - If the user asks something not related to law, respond: "I'm designed to assist with Bangladeshi legal topics. Could you please provide a legal question or context?"
 
-            **Instructions:**
-            1.  **Language Match:** You MUST first detect the language of the 'Question'. Your entire answer MUST be in the **same language** as the question (e.g., if the question is in Bengali, the answer must be in Bengali).
-            2.  **Identify the Law:** Read the question and find the part of the context that is most relevant.
-            3.  **Cite Accurately:** You MUST cite the **full name of the Act** (e.g., "According to the Bangladesh Labour Act, 2006..." or "বাংলাদেশ শ্রম আইন, ২০০৬ অনুযায়ী...") AND the **exact Section number**.
-            4.  **Explain Simply:** Use plain, simple language (English or Bengali) so an ordinary Bangladeshi reader (not a lawyer) can understand.
-            5.  **Be Concise:** Keep the answer focused, ideally 3-6 short paragraphs.
-            6.  **Handle Ambiguity:** If a question is vague (e.g., "What is a 'director'?"), check if multiple laws define it. Answer using the *most relevant law* first.
+            =================================================================
+            USER QUERY
+            Question: "{question}"
 
-            Context:
+            =================================================================
+            INSTRUCTIONS
+            1. **Context Evaluation**
+            - If the context is insufficient to answer the query, respond: "The provided documents do not contain sufficient information to answer this question."
+            - If the context is irrelevant, respond: "The retrieved documents are not relevant to the query and I cannot provide an answer."
+            - If the context contains contradictions, present each conflicting piece with its source and state the documents are contradictory.
+    
+            2. **Bilingual Term Standardization**
+            - Treat English and Bengali legal terms as equivalent (e.g., 'contract' = 'চুি'). Note ambiguities if present.
+
+            3. **Structured Reasoning**
+            - Identify the core legal issue(s).
+            - Extract relevant rules from the context and break them into logical elements (R1, R2, etc.).
+            - Formulate a logical expression representing the relationship between elements (e.g., Issue_Resolved = R1 AND (R2 OR R3)).
+            - Evaluate each element strictly from the context (TRUE/FALSE) with supporting quotes.
+            - Resolve the expression and provide a clear conclusion.
+
+            4. **Self-Check**
+            - Ensure every statement is supported by context (Faithfulness).
+            - Ensure the answer directly addresses the query (Relevancy).
+            - Ensure the logic is sound.
+
+            =================================================================
+            RETRIEVED CONTEXT
             {context}
 
-            Question:
-            {question}
+            =================================================================
+            OUTPUT FORMAT
+            - **ANSWER (Markdown):** Provide a clear, concise, and comprehensive human-readable explanation based on your structured reasoning. The answer should be a high-quality narrative and must not include citation numbers or a separate citations section.
 
-            Now, detect the question's language, identify the correct law, and provide a factual, simplified explanation in that same language, based *only* on the text above.
+            =================================================================
+            FINAL REMINDER
+            Answer the question strictly based on the provided context, using the structured reasoning process.
+            For greetings or casual remarks, reply politely and briefly.
             """
         )
         
