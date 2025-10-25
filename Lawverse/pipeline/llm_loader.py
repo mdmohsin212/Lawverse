@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Any
 from langchain_core.language_models.llms import LLM
 from openai import OpenAI
 import os
@@ -12,12 +12,13 @@ class LightningLLM(LLM):
         object.__setattr__(self, "client", OpenAI(base_url="https://lightning.ai/api/v1/", api_key=api_key))
         object.__setattr__(self, "model", model)
 
-    def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
+    def _call(self, prompt: str, stop: Optional[List[str]] = None, run_manager: Optional = None, **kwargs: Any) -> str:
+        
         resp = self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": [{"type": "text", "text": prompt}]}],
             temperature=0.1,
-            max_tokens=5120
+            max_tokens=10240
         )
         return resp.choices[0].message.content
 

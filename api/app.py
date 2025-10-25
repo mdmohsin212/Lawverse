@@ -2,7 +2,7 @@ from Lawverse.pipeline.rag_pipeline import rag_components, create_chat_chian
 from flask import Flask, render_template, request, jsonify, session
 from Lawverse.utils.config import MEMORY_DIR
 from Lawverse.logger import logging
-# from Lawverse.monitoring.dashboard import monitor_bp
+from Lawverse.monitoring.dashboard import monitor_bp
 from api.auth import auth_bp, login_required
 from api.models import db
 import markdown
@@ -20,7 +20,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 admin.init_app(app)
 app.register_blueprint(auth_bp)
-# app.register_blueprint(monitor_bp)
+app.register_blueprint(monitor_bp)
 
 with app.app_context():
     db.create_all()
@@ -104,7 +104,8 @@ def get_chats():
 
 @app.route("/load_chat/<chat_id>", methods=["POST"])
 def load_chat(chat_id):
-    if not os.path.exists(os.path.join(MEMORY_DIR, f"{chat_id}.json")):
+    user_id = session.get("user_id")
+    if not os.path.exists(os.path.join(MEMORY_DIR, f"user_{user_id}_{chat_id}.json")):
         return jsonify({"error": "Chat not found"}), 404
 
     chain, memory_manager = create_chat_chian(BASE_COMPONENTS, chat_id=chat_id)

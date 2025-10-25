@@ -1,3 +1,4 @@
+ragas
 pymupdf
 langchain
 langchain_community
