@@ -40,7 +40,7 @@ def rag_components():
         dense_db = FAISS.load_local(dense_db_path, embeddings, allow_dangerous_deserialization=True)
         logging.info(f"FAISS index loaded successfully from '{dense_db_path}' with {dense_db.index.ntotal} vectors.")
         
-        retriever = HybridRetriever(faiss_db=dense_db, bm25=bm25, chunks=chunks, initial_top_k=25, final_top_k=5)
+        retriever = HybridRetriever(faiss_db=dense_db, bm25=bm25, chunks=chunks, initial_top_k=10, final_top_k=5)
         retriever.init_cross_encoder()
         
         logging.info("Hybrid retriever initialized successfully with dense and sparse indexes.")
