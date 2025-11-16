@@ -19,6 +19,7 @@ def eval_dataset(eval_data):
     
     eval_results = []
     for sample in eval_data:
+        time.sleep(2)
         try:
             result = chain.invoke({"question": sample["question"]})
             answer = result["answer"]
