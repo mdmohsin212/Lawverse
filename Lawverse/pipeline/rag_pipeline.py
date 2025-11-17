@@ -11,8 +11,10 @@ from Lawverse.logger import logging
 from Lawverse.exception import ExceptionHandle
 from Lawverse.utils.config import FAISS_PATH
 
-from langchain_classic.chains.conversational_retrieval.base import ConversationalRetrievalChain
-from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
+from langchain_classic.chains.combine_documents import create_stuff_documents_chain
+from langchain_classic.chains.retrieval import create_retrieval_chain
+from langchain_classic.chains.history_aware_retriever import create_history_aware_retriever
 import sys
 import pickle
 
@@ -117,20 +119,41 @@ def rag_components():
 def create_chat_chian(components, chat_id=None):
     try:
         memory_manager = ChatMemory(chat_id=chat_id)
-        memory = memory_manager.memory
-        
-        chain = ConversationalRetrievalChain.from_llm(
-            llm=llm,
-            retriever=components["retriever"],
-            combine_docs_chain_kwargs={"prompt": components["qa_prompt"]},
-            memory=memory,
-            return_source_documents=True,
-            output_key="answer"
+        retriever = components["retriever"]
+
+        contextualize_q_system_prompt = (
+            "Given a chat history and the latest user question "
+            "which might reference context in the chat history, "
+            "formulate a standalone question which can be understood "
+            "without the chat history. Do NOT answer the question, "
+            "just reformulate it if needed and otherwise return it as is."
         )
         
-        logging.info("RAG chain initialized successfully.")
-        return chain, memory_manager
-    
+        contextualize_q_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", contextualize_q_system_prompt),
+                MessagesPlaceholder("chat_history"),
+                ("human", "{input}"),
+            ]
+        )
+        history_aware_retriever = create_history_aware_retriever(
+            llm, retriever, contextualize_q_prompt
+        )
+        template_str = components["qa_prompt"].template
+        if "{question}" in template_str:
+            template_str = template_str.replace("{question}", "{input}")
+
+        qa_prompt = ChatPromptTemplate.from_template(template_str)
+        question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
+
+        rag_chain = create_retrieval_chain(
+            history_aware_retriever, question_answer_chain
+        )
+        final_chain = rag_chain | (lambda x: x["answer"])
+
+        logging.info("LCEL RAG chain initialized successfully.")
+        return final_chain, memory_manager
+
     except Exception as e:
-        logging.error(f"Chat chain creation failed")
+        logging.error(f"Chat chain creation failed: {e}")
         raise ExceptionHandle(e, sys)

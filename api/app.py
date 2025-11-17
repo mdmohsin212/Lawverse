@@ -1,5 +1,5 @@
 from Lawverse.pipeline.rag_pipeline import rag_components, create_chat_chian
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, stream_with_context, Response
 from Lawverse.utils.config import MEMORY_DIR
 from Lawverse.logger import logging
 from Lawverse.monitoring.dashboard import monitor_bp
@@ -70,13 +70,17 @@ def rag_response():
         if not query:
             return jsonify({"error": "Empty message"}), 400
         
-        result = qa({"question": query})
-        memory_manager.save_memory()
+        def generate():
+            try:
+                for chunk in qa.stream({"input": query}):
+                    yield chunk
+                memory_manager.save_memory()
+
+            except Exception as e:
+                logging.error(f"Error during stream generation: {e}")
+                yield f"**Error:** An error occurred while processing your request."
         
-        answer_markdown = result.get("answer","")
-        rendered_html = markdown.markdown(answer_markdown)
-        
-        return jsonify({"answer": rendered_html})
+        return Response(stream_with_context(generate()), mimetype='text/plain')
     
     except Exception as e:
         logging.error(f"Chat error: {e}")

@@ -346,30 +346,44 @@
 
           addMessage(text, true);
           messageInput.value = "";
-
           const typing = showTyping();
-
           try {
-            const response = await fetch("/response", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ message: text }),
-            });
+              const response = await fetch("/response", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ message: text }),
+              });
+              const reader = response.body.getReader();
+              const decoder = new TextDecoder();
 
-            const data = await response.json();
-            typing.remove();
+              typing.remove();
+              const aiBubble = document.createElement("div");
+              aiBubble.className = "message-bubble ai-message";
+              aiBubble.innerHTML = `
+                  <div class="flex items-start">
+                      <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3"></div>
+                      <div>
+                          <p class="font-semibold text-cyan-300 mb-1">Lawverse AI</p>
+                          <div class="message-content"></div>
+                      </div>
+                  </div>`;
+              chatMessages.appendChild(aiBubble);
+              const contentDiv = aiBubble.querySelector(".message-content");
 
-            if (data.answer) {
-              addMessage(data.answer, false);
+              while (true) {
+                  const { value, done } = await reader.read();
+                  if (done) break;
+
+                  const chunk = decoder.decode(value);
+                  contentDiv.innerHTML += chunk;
+                  chatMessages.scrollTop = chatMessages.scrollHeight;
+              }
+
               loadSidebarChats();
-            } else if (data.error) {
-              addMessage(`⚠️ Error: ${data.error}`, false);
-            } else {
-              addMessage("⚠️ Unexpected response from server.", false);
-            }
-          } catch (error) {
-            typing.remove();
-            addMessage("❌ Error: Unable to connect to the server.", false);
+
+          } catch (err) {
+              typing.remove();
+              addMessage("❌ Streaming failed: " + err.message, false);
           }
         }
 

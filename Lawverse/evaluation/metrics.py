@@ -35,10 +35,14 @@ class RagasMetrics:
 
     @staticmethod
     def f_recall(pred_answer, true_answer):
-        tp = sum(1 for p, t in zip(pred_answer, true_answer) if t.lower() in p.lower())
-        fn = len(true_answer) - tp
-        recall = tp / (tp + fn + 1e-8)
-        return round(recall, 4)
+        pred_tokens = set(" ".join(pred_answer).lower().split())
+        true_tokens = set(" ".join(true_answer).lower().split())
+
+        tp = len(pred_tokens & true_tokens)
+        fn = len(true_tokens - pred_tokens)
+
+        return round(tp / (tp + fn + 1e-8), 4)
+
 
 def compute_all_metrics(dataset : Dataset, preds, trues, llm : BaseRagasLLM, run_config : RunConfig):
     ragas = RagasMetrics()
