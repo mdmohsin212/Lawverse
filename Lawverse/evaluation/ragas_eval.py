@@ -20,13 +20,20 @@ def eval_dataset(eval_data):
     MAX_RETRIES = 3
     
     for sample in eval_data:
-        time.sleep(2)
+        time.sleep(3)
         retries = 0
         while retries < MAX_RETRIES:
             try:
-                result = chain.invoke({"question": sample["question"]})
-                answer = result["answer"]
-                context_docs = [d.page_content for d in result["source_documents"]]
+                result = chain.invoke({"input": sample["question"]})
+                
+                if isinstance(result, str):
+                    answer = result
+                    context_docs = []
+                elif isinstance(result, dict):
+                    answer = result.get("answer", "")
+                    context_docs = [d.page_content for d in result.get("source_documents", [])]
+                else:
+                    raise TypeError(f"Unexpected type from chain.invoke(): {type(result)}")
 
                 eval_results.append({
                     "question": sample["question"],
@@ -49,7 +56,7 @@ def eval_dataset(eval_data):
                 time.sleep(sleep_time)
     return Dataset.from_list(eval_results)
 
-def run_ragas_evaluation(eval_data, llm : BaseLanguageModel):
+def run_ragas_evaluation(eval_data, llm: BaseLanguageModel):
     dataset = eval_dataset(eval_data)
     preds = [item["answer"] for item in dataset]
     trues = [item["ground_truth"] for item in dataset]
@@ -59,7 +66,7 @@ def run_ragas_evaluation(eval_data, llm : BaseLanguageModel):
     
     results = compute_all_metrics(dataset, preds, trues, eval_llm, run_config)
     
-    logging.info(f"RAGAS evaluation completed. Scores: {results}")
+    logging.info(f"RAG evaluation completed. Scores: {results}")
 
     entry = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
