@@ -15,9 +15,6 @@
 -   **User Authentication:** Secure Sign-Up and Sign-In functionality to manage user sessions.
     
 -   **Dockerized Deployment:** Fully containerized application ensuring consistency across development and production environments.
-    
--   **Responsive UI:** Clean and professional interface built with semantic HTML and CSS.
-    
 
 ## 🛠️ Technology Stack
 
