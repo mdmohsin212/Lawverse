@@ -34,10 +34,6 @@
 
 ## ⚙️ Installation & Local Setup
 
-## 
-
-Follow these steps to set up Lawverse locally.
-
 ### Prerequisites
 
 ## 
