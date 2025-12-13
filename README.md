@@ -31,8 +31,6 @@
     
 -   **Deployment:** Docker
     
--   **Hosting:** Hugging Face Spaces
-    
 
 ## ⚙️ Installation & Local Setup
 
