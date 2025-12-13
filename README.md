@@ -53,8 +53,6 @@ Follow these steps to set up Lawverse locally.
 
 ### Option 1: Running with Docker (Recommended)
 
-## 
-
 1.  **Clone the Repository**
     
         git clone https://github.com/mdmohsin212/Lawverse.git
