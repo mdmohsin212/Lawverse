@@ -88,7 +88,7 @@ Follow these steps to set up Lawverse locally.
 2.  **Create Virtual Environment**
     
         python -m venv venv
-        source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+        source venv/bin/activate
         
     
 3.  **Install Dependencies**
