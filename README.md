@@ -33,8 +33,6 @@
 
 ### Prerequisites
 
-## 
-
 -   Git
     
 -   Docker (Recommended) or Python 3.9+
