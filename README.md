@@ -40,7 +40,7 @@
 -   Google AI Studio API Key
     
 
-### Option 1: Running with Docker (Recommended)
+### Option 1: Running with Docker
 
 1.  **Clone the Repository**
     
