@@ -51,7 +51,6 @@
 2.  **Configure Environment Variables** Create a `.env` file in the root directory:
     
         GOOGLE_API_KEY=your_actual_google_api_key
-        SECRET_KEY=your_random_secret_key_for_flask_sessions
         
     
 3.  **Build and Run**
