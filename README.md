@@ -56,7 +56,7 @@
 3.  **Build and Run**
     
         docker build -t lawverse .
-        
+        docker run -p 7860:7860 --env-file .env lawverse
         
     
     Access the app at `http://localhost:7860`.
