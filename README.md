@@ -4,7 +4,6 @@
 
 ## 🚀 Key Features
 
-## 
 
 -   **RAG Architecture:** Retrievies relevant legal context before generating answers to ensure high factual accuracy and reduced hallucinations.
     
