@@ -4,7 +4,6 @@
 
 ## 🚀 Key Features
 
-
 -   **RAG Architecture:** Retrievies relevant legal context before generating answers to ensure high factual accuracy and reduced hallucinations.
     
 -   **Conversational Memory:** Utilizes LangChain to maintain context across multiple turns of conversation, mimicking a real legal consultation.
