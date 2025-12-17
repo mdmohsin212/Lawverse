@@ -12,7 +12,7 @@
     
 -   **User Authentication:** Secure Sign-Up and Sign-In functionality to manage user sessions.
     
--   **Dockerized Deployment:** Fully containerized application ensuring consistency across development and production environments.
+
 
 ## 🛠️ Technology Stack
 
