@@ -8,7 +8,11 @@
     
 -   **Conversational Memory:** Utilizes LangChain to maintain context across multiple turns of conversation, mimicking a real legal consultation.
     
-
+-   **High-Performance LLM:** Powered by `google/gemini-2.5-flash` for rapid inference and strong reasoning capabilities.
+    
+-   **User Authentication:** Secure Sign-Up and Sign-In functionality to manage user sessions.
+    
+-   **Dockerized Deployment:** Fully containerized application ensuring consistency across development and production environments.
 
 ## 🛠️ Technology Stack
 
