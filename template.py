@@ -22,9 +22,6 @@ list_of_files = [
     f"{project_name}/memory/__init__.py",
     f"{project_name}/memory/langchain_memory.py",
     
-    f"{project_name}/orchestration/__init__.py",
-    f"{project_name}/orchestration/airflow_dag.py",
-    
     f"{project_name}/utils/__init__.py",
     f"{project_name}/utils/config.py",
     f"{project_name}/utils/storage.py",
@@ -32,7 +29,19 @@ list_of_files = [
     f"{project_name}/logger/__init__.py",
     f"{project_name}/exception/__init__.py",
     
-    f"{project_name}/monitoring/README.md",
+    f"{project_name}/monitoring/dashboard.py",
+    
+    ".github/workflows/to_hf.yml",
+    
+    "api/admin.py",
+    "api/app.py",
+    "api/auth.py",
+    "api/models.py",
+    
+    "templates/chat.html",
+    "templates/index.html",
+    "templates/login.html",
+    "templates/signup.html",
     
     "app.py",
     "requirements.txt",
