@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.git
+.github
+__pycache__/
+*.pyc
+.pytest_cache/
+api/instance/
+Lawverse/data/
+artifacts/
+monitoring/
+.DS_Store
+.vscode/
+.idea/

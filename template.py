@@ -47,6 +47,7 @@ list_of_files = [
     "requirements.txt",
     "Dockerfile",
     ".dockerignore",
+    "app.py",
     "setup.py",
     "config/sources.yaml"
 ]
