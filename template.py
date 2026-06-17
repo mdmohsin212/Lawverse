@@ -31,6 +31,17 @@ list_of_files = [
     
     f"{project_name}/monitoring/dashboard.py",
     
+    f"{project_name}/agents/__init__.py",
+    f"{project_name}/agents/state.py",
+    f"{project_name}/agents/prompts.py",
+    f"{project_name}/agents/tools.py",
+    f"{project_name}/agents/nodes.py",
+    f"{project_name}/agents/graph.py",
+    
+    f"{project_name}/guardrails/__init__.py",
+    f"{project_name}/guardrails/legal_disclaimer.py",
+    f"{project_name}/guardrails/answer_policy.py",
+    
     ".github/workflows/to_hf.yml",
     
     "api/admin.py",
