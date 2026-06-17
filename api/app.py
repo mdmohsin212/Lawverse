@@ -1,8 +1,11 @@
-from Lawverse.pipeline.rag_pipeline import rag_components, create_chat_chain
 from flask import Flask, render_template, request, jsonify, session, stream_with_context, Response
+from Lawverse.pipeline.rag_pipeline import rag_components
+from Lawverse.pipeline.llm_loader import llm
+from Lawverse.memory.langchain_memory import ChatMemory
 from Lawverse.utils.config import MEMORY_DIR
 from Lawverse.logger import logging
 from Lawverse.monitoring.dashboard import monitor_bp
+from Lawverse.agents.graph import create_agentic_chain
 from api.auth import auth_bp, login_required
 from api.models import db
 from api.admin import admin
@@ -27,8 +30,31 @@ app.register_blueprint(monitor_bp)
 with app.app_context():
     db.create_all()
 
-BASE_COMPONENTS = rag_components()
+BASE_COMPONENTS = None
 active_chains = {}
+
+
+def get_base_components():
+    global BASE_COMPONENTS
+
+    if BASE_COMPONENTS is None:
+        logging.info("Loading Lawverse RAG base components...")
+        BASE_COMPONENTS = rag_components()
+        logging.info("Lawverse RAG base components loaded successfully.")
+
+    return BASE_COMPONENTS
+
+
+def create_agent_session(chat_id=None):
+    components = get_base_components()
+    chain = create_agentic_chain(components, llm)
+    memory_manager = ChatMemory(chat_id=chat_id)
+
+    active_chains[memory_manager.chat_id] = (chain, memory_manager)
+    session["chat_id"] = memory_manager.chat_id
+    memory_manager.save_memory()
+
+    return chain, memory_manager
 
 @app.route("/", methods=["GET"])
 def home():
@@ -39,21 +65,19 @@ def home():
 def chat():
     chat_id = session.get("chat_id")
     if not chat_id or chat_id not in active_chains:
-        chain, memory_manager = create_chat_chain(BASE_COMPONENTS)
-        active_chains[memory_manager.chat_id] = (chain, memory_manager)
-        session["chat_id"] = memory_manager.chat_id
-        memory_manager.save_memory()
-
+        create_agent_session()
+        
     return render_template("chat.html")
 
 @app.route("/new_chat", methods=["POST"])
 @login_required
 def new_chat():
-    chain, memory_manager = create_chat_chain(BASE_COMPONENTS)
-    active_chains[memory_manager.chat_id] = (chain, memory_manager)
-    session["chat_id"] = memory_manager.chat_id
-    memory_manager.save_memory()
-    return jsonify({"chat_id": memory_manager.chat_id, "title": memory_manager._get_title()})
+    _, memory_manager = create_agent_session()
+
+    return jsonify({
+        "chat_id": memory_manager.chat_id,
+        "title": memory_manager._get_title()
+    })
 
 
 @app.route("/response", methods=["POST"])
@@ -62,15 +86,13 @@ def rag_response():
     try:
         chat_id = session.get("chat_id")
         if not chat_id or chat_id not in active_chains:
-            chain, memory_manager = create_chat_chain(BASE_COMPONENTS)
-            active_chains[memory_manager.chat_id] = (chain, memory_manager)
-            session["chat_id"] = memory_manager.chat_id
+            _, memory_manager = create_agent_session()
             chat_id = memory_manager.chat_id
 
         qa, memory_manager = active_chains[chat_id]
-
         data = request.get_json(silent=True) or {}
         query = data.get("message", "").strip()
+
         if not query:
             return jsonify({"error": "Empty message"}), 400
 
@@ -105,19 +127,23 @@ def rag_response():
 def get_chats():
     chats = []
     user_id = session.get("user_id")
-
+    os.makedirs(MEMORY_DIR, exist_ok=True)
     for file_path in glob.glob(f"{MEMORY_DIR}/*.json"):
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
 
-        if data.get("user_id") == user_id:
-            chats.append({
-                "chat_id": data.get("chat_id"),
-                "last_updated": data.get("last_updated"),
-                "title": data.get("title", f"Chat-{data.get('chat_id')}")
-            })
+            if data.get("user_id") == user_id:
+                chats.append({
+                    "chat_id": data.get("chat_id"),
+                    "last_updated": data.get("last_updated"),
+                    "title": data.get("title", f"Chat-{data.get('chat_id')}")
+                })
 
-    chats.sort(key=lambda x: x.get("last_updated", x["chat_id"]), reverse=True)
+        except Exception as e:
+            logging.warning(f"Skipping unreadable memory file {file_path}: {e}")
+
+    chats.sort(key=lambda x: x.get("last_updated") or x.get("chat_id"), reverse=True)
     return jsonify(chats)
 
 
@@ -129,9 +155,7 @@ def load_chat(chat_id):
     if not os.path.exists(memory_path):
         return jsonify({"error": "Chat not found"}), 404
 
-    chain, memory_manager = create_chat_chain(BASE_COMPONENTS, chat_id=chat_id)
-    active_chains[memory_manager.chat_id] = (chain, memory_manager)
-    session["chat_id"] = memory_manager.chat_id
+    _, memory_manager = create_agent_session(chat_id=chat_id)
 
     messages_list = memory_manager.memory.chat_memory.messages
     messages = []
@@ -140,7 +164,10 @@ def load_chat(chat_id):
         user_msg = messages_list[i].content if i < len(messages_list) else None
         ai_msg = messages_list[i + 1].content if i + 1 < len(messages_list) else ""
         if user_msg:
-            messages.append({"user": user_msg, "ai": ai_msg})
+            messages.append({
+                "user": user_msg,
+                "ai": ai_msg
+            })
 
     return jsonify({
         "chat_id": chat_id,
@@ -164,7 +191,13 @@ def delete_chat(chat_id):
         if was_active:
             del active_chains[chat_id]
 
-        return jsonify({"success": True, "was_active": was_active}), 200
+        if session.get("chat_id") == chat_id:
+            session.pop("chat_id", None)
+
+        return jsonify({
+            "success": True,
+            "was_active": was_active
+        }), 200
 
     except Exception as e:
         logging.error(f"Error deleting chat {chat_id}: {e}")
