@@ -21,6 +21,6 @@ ENV GDOWN_CACHE=/tmp/lawverse_data/gdown_cache
 
 COPY . .
 
-EXPOSE 10000
+EXPOSE 7860
 
 CMD ["python", "-m", "api.app"]
