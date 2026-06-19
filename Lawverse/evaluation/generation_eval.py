@@ -107,3 +107,17 @@ def evaluate_generation(max_cases: int | None = None, dry_run: bool = False) -> 
         writer.writerows(rows)
 
     return report
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run Lawverse RAG generation evaluation.")
+    parser.add_argument("--max-cases", type=int, default=None)
+    parser.add_argument("--dry-run", action="store_true", help="Do not call retriever/LLM; evaluate reference answers only.")
+    args = parser.parse_args()
+    report = evaluate_generation(max_cases=args.max_cases, dry_run=args.dry_run)
+    print(f"Saved generation metrics to {OUTPUT_DIR / 'rag_generation_metrics.json'}")
+    print(report["metrics"])
+
+
+if __name__ == "__main__":
+    main()
