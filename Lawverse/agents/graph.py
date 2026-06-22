@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Any, Dict, Iterable, Optional
 from langgraph.graph import END, StateGraph
-
 from Lawverse.agents.state import AgentState
 from Lawverse.agents.nodes import (
     answer_generator_node,
@@ -47,7 +46,6 @@ class AgenticLawverseChain:
             compiled = graph.compile()
             logging.info("LangGraph agent workflow compiled successfully.")
             return compiled
-        
         except Exception as e:
             logging.warning(f"LangGraph is unavailable or failed to compile; using fallback sequential graph. Error: {e}")
             return None
@@ -62,17 +60,18 @@ class AgenticLawverseChain:
         state = citation_verifier_node(state, self.llm)
         return state
 
-    def invoke(self, inputs: Dict[str, Any], config: Optional[dict] = None) -> str:
+    def invoke_state(self, inputs: Dict[str, Any], config: Optional[dict] = None) -> AgentState:
         state: AgentState = {
             "input": inputs.get("input", ""),
             "chat_history": inputs.get("chat_history", []),
         }
 
         if self._compiled_graph is not None:
-            output_state = self._compiled_graph.invoke(state, config=config)
-        else:
-            output_state = self._run_fallback_graph(state)
+            return self._compiled_graph.invoke(state, config=config)
+        return self._run_fallback_graph(state)
 
+    def invoke(self, inputs: Dict[str, Any], config: Optional[dict] = None) -> str:
+        output_state = self.invoke_state(inputs, config=config)
         return output_state.get("final_answer") or output_state.get("draft_answer") or ""
 
     def stream(self, inputs: Dict[str, Any], config: Optional[dict] = None) -> Iterable[str]:

@@ -13,7 +13,6 @@ venv/
 *.db
 api/instance/
 Lawverse/data/
-artifacts/
 monitoring/
 
 .DS_Store
