@@ -14,7 +14,7 @@ def fetch_file(urls=PDF_URL):
             save_path = PDF_DIR / filename
             
             if not save_path.exists():
-                gdown.download(id=file_id, output=str(save_path), quiet=False)
+                gdown.download(id=file_id, output=str(save_path), quiet=False, fuzzy=True)
                 logging.info(f"PDF saved at: {save_path}")
             else:
                 logging.info(f"PDF already exists at: {save_path}")
