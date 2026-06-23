@@ -94,6 +94,46 @@
         box-shadow: 0 0 15px rgba(0, 150, 255, 0.2);
       }
 
+      .ai-message sup {
+        font-size: 0.75rem;
+        vertical-align: super;
+        margin-left: 2px;
+        color: #00ffff;
+      }
+
+      .ai-message p {
+        margin-bottom: 0.75rem;
+        line-height: 1.7;
+      }
+      
+      .ai-message p:last-child {
+        margin-bottom: 0;
+      }
+
+      .ai-message strong {
+        font-weight: 700;
+        color: #00ffff;
+      }
+
+      .ai-message ol,
+      .ai-message ul {
+        margin-left: 1.25rem;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .ai-message ul {
+        list-style-type: disc;
+      }
+
+      .ai-message ol {
+        list-style-type: decimal;
+      }
+
+      .ai-message li {
+        margin-bottom: 0.4rem;
+      }
+
       .input-bar {
         background: rgba(0, 10, 30, 0.5);
         border: 2px solid #00ffff;
@@ -260,11 +300,13 @@
               ></div>
               <div>
                 <p class="font-semibold text-cyan-300 mb-1">Lawverse AI</p>
-                <p>
-                  Hello! I'm your Legal Knowledge Assistant. I can help you
-                  understand complex legal documents and acts like corporate,
-                  labour, and digital laws. How can I assist you today?
-                </p>
+                <div class="message-content">
+                  <p>
+                    Hello! I'm your Legal Knowledge Assistant. I can help you
+                    understand complex legal documents and acts like corporate,
+                    labour, and digital laws. How can I assist you today?
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -283,7 +325,7 @@
             </button>
           </div>
         </div>
-        <span class="mb-3 text-center">Ai can make mistakes, so double-check it</span>
+        <span class="mb-3 text-center text-xs text-gray-400">Ai can make mistakes, so double-check it</span>
       </div>
     </div>
 
@@ -295,6 +337,19 @@
     </button>
 
     <script>
+      function renderMarkdown(text) {
+        if (!text) return "";
+        const normalized = text.replace(/\^\[(\d+)\]/g, "<sup>[$1]</sup>");
+
+        if (window.marked && window.DOMPurify) {
+          return DOMPurify.sanitize(marked.parse(normalized));
+        }
+
+        return normalized
+          .replace(/\n/g, "<br>")
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+      }
+
       feather.replace();
       document.addEventListener("DOMContentLoaded", function () {
         const chatMessages = document.getElementById("chat-messages");
@@ -309,6 +364,9 @@
           messageDiv.className = `message-bubble ${
             isUser ? "user-message" : "ai-message"
           }`;
+          
+          const formattedMessage = isUser ? message : renderMarkdown(message);
+          
           messageDiv.innerHTML = `
           <div class="flex items-start">
             <div class="w-8 h-8 rounded-full ${
@@ -320,7 +378,7 @@
               <p class="font-semibold ${
                 isUser ? "text-gray-300" : "text-cyan-300"
               } mb-1">${isUser ? "You" : "Lawverse AI"}</p>
-              <div class="message-content">${message}</div>
+              <div class="message-content">${formattedMessage}</div>
             </div>
           </div>`;
           chatMessages.appendChild(messageDiv);
@@ -371,13 +429,16 @@
                   </div>`;
               chatMessages.appendChild(aiBubble);
               const contentDiv = aiBubble.querySelector(".message-content");
+              let fullResponse = "";
 
               while (true) {
                   const { value, done } = await reader.read();
                   if (done) break;
 
-                  const chunk = decoder.decode(value);
-                  contentDiv.innerHTML += chunk;
+                  const chunk = decoder.decode(value, { stream: true });
+                  fullResponse += chunk;
+                  
+                  contentDiv.innerHTML = renderMarkdown(fullResponse);
                   chatMessages.scrollTop = chatMessages.scrollHeight;
               }
 
@@ -403,7 +464,9 @@
               <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3 flex-shrink-0"></div>
               <div>
                 <p class="font-semibold text-cyan-300 mb-1">Lawverse AI</p>
-                <p>New chat started! You can begin your next legal query.</p>
+                <div class="message-content">
+                  <p>New chat started! You can begin your next legal query.</p>
+                </div>
               </div>
             </div>
           </div>`;
