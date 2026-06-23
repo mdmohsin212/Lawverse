@@ -8,7 +8,6 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-RUN mkdir -p /.cache/gdown && chmod -R 777 /.cache
 RUN mkdir -p /app/.cache && chmod -R 777 /app/.cache
 RUN mkdir -p /app/api/instance && chmod -R 777 /app/api/instance
 RUN python -m nltk.downloader punkt stopwords wordnet omw-1.4
@@ -16,8 +15,6 @@ RUN python -m nltk.downloader punkt stopwords wordnet omw-1.4
 RUN mkdir -p /app/.cache
 ENV HF_HOME=/app/.cache
 ENV TRANSFORMERS_CACHE=/app/.cache
-
-ENV GDOWN_CACHE=/tmp/lawverse_data/gdown_cache
 
 COPY . .
 

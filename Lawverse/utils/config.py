@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-
+# ---- Local ----
 # BASE_DIR = Path(__file__).resolve().parent.parent
 # DATA_DIR = BASE_DIR / "data"
 # PDF_DIR = DATA_DIR / "raw"
@@ -9,7 +9,14 @@ from pathlib import Path
 # MEMORY_DIR = DATA_DIR / "memory/store"
 # FAISS_PATH = DATA_DIR / "faiss_index"
 
-# ---- For Hugging spaces ----
+
+PDF_URL = [
+    "https://raw.githubusercontent.com/mdmohsin212/Kaggle-competitions/main/Dataset/Digital-Security-Act-2018.pdf",
+    "http://raw.githubusercontent.com/mdmohsin212/Kaggle-competitions/main/Dataset/Bangladesh%20COMPANIES%20ACT.pdf",
+    "http://raw.githubusercontent.com/mdmohsin212/Kaggle-competitions/main/Dataset/Bangladesh-Labour-Act-2018.pdf"
+]
+
+# ---- HF ----
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = Path("/tmp/lawverse_data")
 
@@ -18,15 +25,6 @@ PROCESSED_DIR = DATA_DIR / "process"
 MEMORY_DIR = DATA_DIR / "memory/store"
 
 FAISS_PATH = DATA_DIR / "faiss_index"
-GDOWN_CACHE = DATA_DIR / "gdown_cache"
 
-for data in [DATA_DIR, PDF_DIR, PROCESSED_DIR, MEMORY_DIR, GDOWN_CACHE]:
+for data in [DATA_DIR, PDF_DIR, PROCESSED_DIR, MEMORY_DIR]:
     os.makedirs(data, exist_ok=True)
-
-os.environ["GDOWN_CACHE"] = str(GDOWN_CACHE)
-    
-PDF_URL = [
-    "https://drive.google.com/file/d/1yVcd9xJPBi03QP0HlGKN56DfJeUlk0fo/view?usp=drive_link",
-    "https://drive.google.com/file/d/1OyReUjwjZfDWNGPgP75qSm71aDAwU4ei/view?usp=drive_link",
-    "https://drive.google.com/file/d/18EpzwVwGDEXfUmEXhwIXjbQ8KTJZSaye/view?usp=drive_link"
-]

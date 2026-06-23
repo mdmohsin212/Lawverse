@@ -32,7 +32,7 @@ TEMPLATE = """
     <h1>📊 Lawverse Evaluation Dashboard</h1>
     <div class="note">
         This dashboard only reads saved evaluation reports from <code>artifacts/evaluation/</code>.
-        It does not run LLM/RAG evaluation automatically, so opening the dashboard will not spend API credits.
+        It does not run LLM/RAG evaluation automatically.
     </div>
     <div id="chart"></div>
     <div class="latest">
