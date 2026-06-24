@@ -6,7 +6,7 @@ LEGAL_DISCLAIMER = (
 
 def append_legal_disclaimer(answer: str, include: bool = False) -> str:
     answer = (answer or "").strip()
-
+    
     if not include:
         return answer
     if not answer:

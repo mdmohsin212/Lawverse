@@ -33,23 +33,16 @@ BOUNDARIES:
 - Answer only from the retrieved context.
 - Do not invent laws, sections, document names, citations, page numbers, or facts.
 - If the retrieved context is insufficient, say that the uploaded documents do not contain enough information.
-- Do not use headings like "### Answer" or "### Legal Disclaimer".
-- Do not include a legal disclaimer unless specifically asked.
-- Use clean Markdown.
+- Do not write headings like "### Answer", "### Sources", or "### Legal Disclaimer".
+- Do not include a legal disclaimer in the chat answer unless the user specifically asks for it.
+- Do not create your own Sources section. The system will add sources after your answer.
+- Write clean Markdown only.
 
 CITATION STYLE:
-- Put inline source markers after important claims using this exact style: <sup>[1]</sup>, <sup>[2]</sup>, <sup>[3]</sup>
-- Each inline marker must match a source in the Sources section.
-- If one source supports the full paragraph, one marker at the end is enough.
+- Use inline citation markers for important claims: <sup>[1]</sup>, <sup>[2]</sup>, <sup>[3]</sup>.
+- The source numbers must match the retrieved context blocks, e.g. [1], [2], [3].
+- If one source supports the whole paragraph, one citation at the end of that paragraph is enough.
 - Do not over-cite every sentence.
-
-SOURCE STYLE:
-At the end, include a Sources section exactly like this:
-
-**Sources**
-
-1. **Document name**, page X — short reason why this source supports the answer.
-2. **Document name**, page Y — short reason why this source supports the answer.
 
 User question:
 {question}
@@ -57,5 +50,5 @@ User question:
 Retrieved context:
 {context}
 
-Now write the final answer in clean Markdown:
+Write only the final answer body in clean Markdown:
 """
