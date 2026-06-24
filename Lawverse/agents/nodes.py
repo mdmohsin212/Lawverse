@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 from typing import Any, List
 from langchain_core.documents import Document
 from Lawverse.agents.state import AgentState
@@ -18,6 +19,7 @@ from Lawverse.guardrails.answer_policy import (
 )
 from Lawverse.guardrails.legal_disclaimer import append_legal_disclaimer
 from Lawverse.logger import logging
+CITATION_PATTERN = re.compile(r"<sup>\[(\d+)\]</sup>|\^\[(\d+)\]|(?<!\w)\[(\d+)\](?!\w)")
 
 
 def _content_from_llm_response(response: Any) -> str:
@@ -31,77 +33,120 @@ def _content_from_llm_response(response: Any) -> str:
 def _history_to_text(chat_history: List[Any], max_items: int = 6) -> str:
     if not chat_history:
         return "No previous chat history."
-
     items = []
     for msg in chat_history[-max_items:]:
         role = msg.__class__.__name__.replace("Message", "")
         content = getattr(msg, "content", str(msg))
         items.append(f"{role}: {content}")
-
     return "\n".join(items)
 
 
-def _strip_bad_headings(answer: str) -> str:
+def _strip_generated_sections(answer: str) -> str:
     if not answer:
         return ""
 
-    replacements = [
-        "### Answer",
-        "## Answer",
-        "# Answer",
-        "### Legal Disclaimer",
-        "## Legal Disclaimer",
-        "# Legal Disclaimer",
-    ]
+    text = answer.strip()
 
-    cleaned = answer
-    for item in replacements:
-        cleaned = cleaned.replace(item, "")
+    for heading in [
+        "### Answer", "## Answer", "# Answer", "Answer:",
+        "### Legal Disclaimer", "## Legal Disclaimer", "# Legal Disclaimer", "Legal Disclaimer:",
+    ]:
+        text = text.replace(heading, "")
 
-    return cleaned.strip()
+    text = re.sub(
+        r"Lawverse\s+(is|provides).*?(licensed lawyer|professional legal advice)\.?",
+        "",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    parts = re.split(
+        r"\n\s*(?:#{1,6}\s*)?\*\*?Sources\*\*?\s*:?\s*\n",
+        text,
+        maxsplit=1,
+        flags=re.IGNORECASE,
+    )
+    text = parts[0]
+    return text.strip()
 
 
-def _build_sources_markdown(docs: List[Document]) -> str:
+def _extract_cited_source_numbers(answer: str) -> list[int]:
+    nums: list[int] = []
+    for match in CITATION_PATTERN.finditer(answer or ""):
+        raw = next((g for g in match.groups() if g), None)
+        if raw is None:
+            continue
+        try:
+            n = int(raw)
+            if n not in nums:
+                nums.append(n)
+        except ValueError:
+            continue
+    return nums
+
+
+def _normalize_inline_citations(answer: str) -> str:
+    if not answer:
+        return ""
+    text = re.sub(r"\^\[(\d+)\]", r"<sup>[\1]</sup>", answer)
+    text = re.sub(r"(?<!\w)\[(\d+)\](?!\w)", r"<sup>[\1]</sup>", text)
+    return text
+
+
+def _append_first_citation(answer: str) -> str:
+    answer = (answer or "").strip()
+    if not answer:
+        return answer
+
+    paragraphs = answer.split("\n\n", 1)
+    first = paragraphs[0].rstrip()
+    first = f"{first}<sup>[1]</sup>"
+
+    paragraphs[0] = first
+    return "\n\n".join(paragraphs)
+
+
+def _build_sources_markdown(
+    docs: List[Document],
+    source_numbers: List[int] | None = None,
+    max_sources: int = 3,
+) -> str:
     sources = build_sources(docs)
     if not sources:
         return ""
 
-    lines = ["**Sources**", ""]
+    if source_numbers:
+        valid_numbers = [n for n in source_numbers if 1 <= n <= len(sources)]
+    else:
+        valid_numbers = [1]
+    if not valid_numbers:
+        valid_numbers = [1]
+        
+    valid_numbers = valid_numbers[:max_sources]
 
-    for src in sources:
-        rank = src.get("rank") or 1
+    lines = ["**Sources**", ""]
+    for n in valid_numbers:
+        src = sources[n - 1]
         source = src.get("source", "Unknown document")
         page = src.get("page", "unknown")
         chunk_id = src.get("chunk_id", "unknown")
-        score = src.get("score", "unknown")
-
-        reason = "retrieved as relevant context for the answer"
         lines.append(
-            f"{rank}. **{source}**, page {page}, chunk {chunk_id} — {reason}."
+            f"{n} - **{source}**, page {page}, chunk {chunk_id} — retrieved as relevant context for the answer."
         )
 
     return "\n".join(lines)
 
 
-def _has_sources_section(answer: str) -> bool:
-    lower = (answer or "").lower()
-    return "**sources**" in lower or "sources:" in lower or "\n# sources" in lower
-
-
 def intent_classifier_node(state: AgentState, llm=None) -> AgentState:
     user_input = state.get("input", "")
     intent, reason = classify_simple_intent(user_input)
-
     state["intent"] = intent
     state["intent_reason"] = reason
-
     logging.info(f"Agent intent classified as {intent}: {reason}")
     return state
 
 
 def query_rewriter_node(state: AgentState, llm=None) -> AgentState:
     question = state.get("input", "")
-    
     if state.get("intent") != "legal_question":
         state["standalone_query"] = question
         return state
@@ -135,18 +180,15 @@ def hybrid_retriever_node(state: AgentState, retriever=None) -> AgentState:
         return state
 
     query = state.get("standalone_query") or state.get("input", "")
-
     try:
         docs = retrieve_with_hybrid_tool(retriever, query, top_k=5)
         state["retrieved_docs"] = docs
         state["sources"] = build_sources(docs)
-
     except Exception as e:
         logging.error(f"Agent retrieval failed: {e}")
         state["retrieved_docs"] = []
         state["sources"] = []
         state["error"] = str(e)
-
     return state
 
 def evidence_grader_node(state: AgentState, llm=None) -> AgentState:
@@ -172,17 +214,14 @@ def evidence_grader_node(state: AgentState, llm=None) -> AgentState:
         prompt = EVIDENCE_GRADER_PROMPT.format(question=question, context=context)
         grade = _content_from_llm_response(llm.invoke(prompt)).strip() if llm else ""
         lower = grade.lower()
-
         if lower.startswith("sufficient"):
             state["has_enough_evidence"] = True
             state["evidence_reason"] = grade
             return state
-
         if lower.startswith("insufficient"):
             state["has_enough_evidence"] = score >= 0.45
             state["evidence_reason"] = grade
             return state
-
     except Exception as e:
         logging.warning(f"LLM evidence grading failed; using lexical score. Error: {e}")
 
@@ -197,15 +236,12 @@ def answer_generator_node(state: AgentState, llm=None) -> AgentState:
     if intent == "greeting":
         state["draft_answer"] = GREETING_RESPONSE
         return state
-
     if intent == "closing":
         state["draft_answer"] = CLOSING_RESPONSE
         return state
-
     if intent in {"non_legal", "empty"}:
         state["draft_answer"] = NON_LEGAL_RESPONSE
         return state
-
     if not state.get("has_enough_evidence"):
         state["draft_answer"] = INSUFFICIENT_EVIDENCE_RESPONSE
         return state
@@ -218,7 +254,6 @@ def answer_generator_node(state: AgentState, llm=None) -> AgentState:
         prompt = ANSWER_GENERATION_PROMPT.format(question=question, context=context)
         answer = _content_from_llm_response(llm.invoke(prompt)).strip() if llm else ""
         state["draft_answer"] = answer or INSUFFICIENT_EVIDENCE_RESPONSE
-
     except Exception as e:
         logging.error(f"Answer generation failed: {e}")
         state["draft_answer"] = INSUFFICIENT_EVIDENCE_RESPONSE
@@ -228,7 +263,8 @@ def answer_generator_node(state: AgentState, llm=None) -> AgentState:
 
 
 def citation_verifier_node(state: AgentState, llm=None) -> AgentState:
-    answer = _strip_bad_headings(state.get("draft_answer", "") or "")
+    raw_answer = state.get("draft_answer", "") or ""
+    answer = _strip_generated_sections(raw_answer)
     docs = state.get("retrieved_docs", []) or []
     intent = state.get("intent")
     issues = []
@@ -238,22 +274,24 @@ def citation_verifier_node(state: AgentState, llm=None) -> AgentState:
         state["citation_check_passed"] = True
         state["final_answer"] = answer
         return state
-    
+
     if state.get("has_enough_evidence") and docs:
-        if not _has_sources_section(answer):
-            issues.append("Sources section was missing and was appended automatically.")
-            sources_md = _build_sources_markdown(docs)
+        cited_numbers = _extract_cited_source_numbers(answer)
+
+        if not cited_numbers:
+            issues.append("No inline citation found; Source 1 citation was appended automatically.")
+            answer = _append_first_citation(answer)
+            cited_numbers = [1]
+
+        answer = _normalize_inline_citations(answer)
+        sources_md = _build_sources_markdown(docs, cited_numbers, max_sources=3)
+
+        if sources_md:
             answer = f"{answer}\n\n{sources_md}"
-            
-    if state.get("has_enough_evidence") and docs:
-        if "<sup>[1]</sup>" not in answer and "^[1]" not in answer and "[1]" not in answer:
-            parts = answer.split("\n\n", 1)
-            parts[0] = parts[0].rstrip(".") + ".<sup>[1]</sup>"
-            answer = "\n\n".join(parts)
+    else:
+        answer = _strip_generated_sections(answer)
 
     state["citation_issues"] = issues
     state["citation_check_passed"] = len(issues) == 0
-
     state["final_answer"] = append_legal_disclaimer(answer, include=False)
-
     return state
