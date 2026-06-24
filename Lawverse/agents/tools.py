@@ -21,16 +21,13 @@ def retrieve_with_hybrid_tool(retriever, query: str, top_k: int = 5) -> List[Doc
 def clean_source_name(source: str) -> str:
     if not source:
         return "Unknown document"
-
     source = str(source)
-    name = Path(source).name
-    return name or source
+    return Path(source).name or source
 
 
 def document_to_source(doc: Document, rank: int | None = None) -> Dict[str, Any]:
     metadata = dict(doc.metadata or {})
     raw_source = metadata.get("source", "unknown")
-
     return {
         "rank": rank or metadata.get("rank"),
         "source": clean_source_name(raw_source),
@@ -47,16 +44,13 @@ def document_to_source(doc: Document, rank: int | None = None) -> Dict[str, Any]
 def format_docs_for_prompt(docs: List[Document], max_chars: int = 7000) -> str:
     blocks = []
     total = 0
-
     for idx, doc in enumerate(docs or [], 1):
         source = document_to_source(doc, rank=idx)
         text = doc.page_content or ""
         block = (
             f"[{idx}] Document: {source['source']} | Page: {source['page']} | "
-            f"Chunk: {source['chunk_id']} | Score: {source['score']}\n"
-            f"{text}"
+            f"Chunk: {source['chunk_id']} | Score: {source['score']}\n{text}"
         )
-
         if total + len(block) > max_chars:
             break
         blocks.append(block)
@@ -75,11 +69,10 @@ def lexical_evidence_score(question: str, docs: List[Document]) -> float:
     stop = {
         "the", "a", "an", "and", "or", "to", "of", "in", "for", "is", "are", "am", "i",
         "what", "how", "why", "when", "can", "could", "should", "me", "my", "about",
-        "tell", "explain",
+        "tell", "explain", "most", "important", "things", "thing", "main", "goal",
     }
     q_words = {w.strip(".,?!;:()[]{}'\"").lower() for w in question.split()}
     q_words = {w for w in q_words if len(w) > 2 and w not in stop}
-
     if not q_words:
         return 0.0
 
