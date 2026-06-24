@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 from typing import Iterable
 from langchain_core.documents import Document
 
@@ -14,12 +15,11 @@ NON_LEGAL_RESPONSE = (
 )
 
 GREETING_RESPONSE = (
-    "Hello! I can help you ask questions about Bangladeshi legal documents and show sources when I use retrieved context."
+    "Hello! I can help you ask questions about Bangladeshi legal documents "
+    "and show sources when I use retrieved context."
 )
 
-CLOSING_RESPONSE = (
-    "You're welcome. Ask another legal-document question whenever you need help."
-)
+CLOSING_RESPONSE = "You're welcome. Ask another legal-document question whenever you need help."
 
 
 LEGAL_KEYWORDS = {
@@ -27,13 +27,54 @@ LEGAL_KEYWORDS = {
     "agreement", "crime", "criminal", "civil", "penalty", "bail", "appeal", "property",
     "labour", "labor", "worker", "employee", "employer", "termination", "notice", "salary",
     "wage", "rent", "tax", "company", "constitution", "ordinance", "maternity", "retrenchment",
-    "dismissal", "compensation", "digital security", "cyber", "fraud", "hacking",
+    "dismissal", "compensation", "digital", "security", "cyber", "fraud", "hacking",
     "বাংলাদেশ", "আইন", "ধারা", "আদালত", "মামলা", "অধিকার", "শ্রম", "চুক্তি", "জামিন",
     "অপরাধ", "কোম্পানি", "শ্রমিক", "নিয়োগ", "বরখাস্ত", "ক্ষতিপূরণ",
 }
 
+LEGAL_PHRASES = {
+    "labour law", "labor law", "digital security", "companies act", "company law",
+    "bangladesh labour", "bangladesh labor", "digital security act", "labour act",
+}
+
 GREETING_WORDS = {"hi", "hello", "hey", "assalamu", "salam", "হাই", "হ্যালো", "সালাম"}
-CLOSING_WORDS = {"thanks", "thank you", "bye", "goodbye", "ধন্যবাদ", "আচ্ছা", "বিদায়"}
+CLOSING_WORDS = {"thanks", "thank", "bye", "goodbye", "ধন্যবাদ", "আচ্ছা", "বিদায়"}
+
+def _tokens(text: str) -> list[str]:
+    english = re.findall(r"[a-zA-Z]+", text.lower())
+    bangla = re.findall(r"[\u0980-\u09FF]+", text)
+    return english + bangla
+
+
+def _has_legal_signal(clean: str, toks: list[str]) -> tuple[bool, str]:
+    token_set = set(toks)
+    token_hits = sorted(LEGAL_KEYWORDS.intersection(token_set))
+    phrase_hits = sorted([phrase for phrase in LEGAL_PHRASES if phrase in clean])
+
+    if phrase_hits:
+        return True, f"Legal phrases detected: {', '.join(phrase_hits[:5])}."
+    if token_hits:
+        return True, f"Legal keywords detected: {', '.join(token_hits[:5])}."
+    return False, "No legal keyword or phrase found."
+
+
+def _is_short_greeting(clean: str, toks: list[str]) -> bool:
+    token_set = set(toks)
+    if not token_set.intersection(GREETING_WORDS):
+        return False
+
+    non_greeting_tokens = [
+        t for t in toks
+        if t not in GREETING_WORDS and t not in {"bro", "there", "lawverse"}
+    ]
+    return len(toks) <= 4 and len(non_greeting_tokens) <= 2
+
+
+def _is_short_closing(clean: str, toks: list[str]) -> bool:
+    token_set = set(toks)
+    if not token_set.intersection(CLOSING_WORDS):
+        return False
+    return len(toks) <= 5
 
 
 def classify_simple_intent(text: str) -> tuple[str, str]:
@@ -41,17 +82,19 @@ def classify_simple_intent(text: str) -> tuple[str, str]:
     if not clean:
         return "empty", "Empty user input."
 
-    if any(word in clean for word in GREETING_WORDS) and len(clean.split()) <= 8:
+    toks = _tokens(clean)
+
+    has_legal, legal_reason = _has_legal_signal(clean, toks)
+    if has_legal:
+        return "legal_question", legal_reason
+
+    if _is_short_greeting(clean, toks):
         return "greeting", "Short greeting detected."
 
-    if any(word in clean for word in CLOSING_WORDS) and len(clean.split()) <= 10:
+    if _is_short_closing(clean, toks):
         return "closing", "Short closing/thanks message detected."
-    
-    token_hits = [kw for kw in LEGAL_KEYWORDS if kw in clean]
-    if token_hits:
-        return "legal_question", f"Legal keywords detected: {', '.join(token_hits[:5])}."
 
-    if len(clean.split()) >= 8:
+    if len(toks) >= 8:
         return "legal_question", "Long-form question; routed to retrieval for evidence check."
 
     return "non_legal", "No legal intent signal detected."
