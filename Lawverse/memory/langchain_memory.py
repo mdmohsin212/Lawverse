@@ -1,28 +1,28 @@
-import os
 import sys
-import json
 from flask import session, has_request_context
 from datetime import datetime
 from langchain_classic.memory import ConversationBufferMemory
 from Lawverse.logger import logging
 from Lawverse.exception import ExceptionHandle
-from Lawverse.utils.config import MEMORY_DIR
+from Lawverse.storage.factory import get_chat_store
 
 
 class ChatMemory:
     def __init__(self, chat_id=None, user_id=None):
         try:
             self.chat_id = chat_id or self._create_new_chat_id()
-            self.user_id = user_id or self._get_current_user_id()
-            os.makedirs(MEMORY_DIR, exist_ok=True)
-            self.memory_file = os.path.join(MEMORY_DIR, f"user_{self.user_id}_{self.chat_id}.json")
+            self.user_id = str(user_id or self._get_current_user_id())
+            self.store = get_chat_store()
+
             self.memory = ConversationBufferMemory(
                 memory_key="chat_history",
                 return_messages=True,
                 output_key="answer",
             )
+
             self._load_memory()
             logging.info(f"ChatMemory initialized for user_id={self.user_id}, chat_id={self.chat_id}")
+
         except Exception as e:
             raise ExceptionHandle(e, sys) from e
 
@@ -32,24 +32,27 @@ class ChatMemory:
         return "anonymous"
 
     def _create_new_chat_id(self):
-        return datetime.now().strftime("%Y%m%d_%H%M%S")
+        return datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
 
     def _load_memory(self):
         try:
-            if os.path.exists(self.memory_file):
-                with open(self.memory_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
+            data = self.store.load_chat(self.user_id, self.chat_id)
 
-                for msg in data.get("history", []):
-                    user_msg = msg.get("user", "")
-                    ai_msg = msg.get("ai", "")
-                    if user_msg:
-                        self.memory.chat_memory.add_user_message(user_msg)
-                    if ai_msg:
-                        self.memory.chat_memory.add_ai_message(ai_msg)
-                logging.info(f"Memory loaded successfully for chat_id: {self.chat_id}")
-            else:
+            if not data:
                 logging.info(f"No existing memory found for chat_id: {self.chat_id}")
+                return
+
+            for msg in data.get("history", []):
+                user_msg = msg.get("user", "")
+                ai_msg = msg.get("ai", "")
+
+                if user_msg:
+                    self.memory.chat_memory.add_user_message(user_msg)
+                if ai_msg:
+                    self.memory.chat_memory.add_ai_message(ai_msg)
+
+            logging.info(f"Memory loaded successfully for chat_id: {self.chat_id}")
+
         except Exception as e:
             raise ExceptionHandle(e, sys) from e
 
@@ -59,27 +62,29 @@ class ChatMemory:
         if ai_message:
             self.memory.chat_memory.add_ai_message(ai_message)
 
+    def _history_as_pairs(self):
+        messages = self.memory.chat_memory.messages
+        history = []
+
+        i = 0
+        while i < len(messages):
+            user_msg = messages[i].content if i < len(messages) else ""
+            ai_msg = messages[i + 1].content if i + 1 < len(messages) else ""
+
+            if user_msg or ai_msg:
+                history.append({"user": user_msg, "ai": ai_msg})
+            i += 2
+
+        return history
+
     def save_memory(self):
         try:
-            messages = self.memory.chat_memory.messages
-            data = {
-                "chat_id": self.chat_id,
-                "user_id": self.user_id,
-                "title": self._get_title(),
-                "last_updated": datetime.now().isoformat(),
-                "history": [],
-            }
-            
-            i = 0
-            while i < len(messages):
-                user_msg = messages[i].content if i < len(messages) else ""
-                ai_msg = messages[i + 1].content if i + 1 < len(messages) else ""
-                if user_msg or ai_msg:
-                    data["history"].append({"user": user_msg, "ai": ai_msg})
-                i += 2
-
-            with open(self.memory_file, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=4)
+            self.store.save_chat(
+                user_id=self.user_id,
+                chat_id=self.chat_id,
+                title=self._get_title(),
+                history=self._history_as_pairs(),
+            )
 
             logging.info(f"Memory saved successfully for chat_id: {self.chat_id}")
         except Exception as e:
@@ -93,10 +98,8 @@ class ChatMemory:
     def clear_memory(self):
         try:
             self.memory.clear()
-            if os.path.exists(self.memory_file):
-                os.remove(self.memory_file)
-                logging.info(f"Memory file deleted for chat_id: {self.chat_id}")
-            else:
-                logging.info(f"No memory file found to delete for chat_id: {self.chat_id}")
+            self.store.delete_chat(self.user_id, self.chat_id)
+            logging.info(f"Memory deleted for chat_id: {self.chat_id}")
+
         except Exception as e:
             raise ExceptionHandle(e, sys) from e
