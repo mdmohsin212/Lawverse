@@ -1,38 +1,26 @@
 from flask import Flask, render_template, request, jsonify, session, stream_with_context, Response
+from dotenv import load_dotenv
+import os
+import secrets
 from Lawverse.pipeline.rag_pipeline import rag_components
 from Lawverse.pipeline.llm_loader import llm
 from Lawverse.memory.langchain_memory import ChatMemory
-from Lawverse.utils.config import MEMORY_DIR
 from Lawverse.logger import logging
 from Lawverse.monitoring.dashboard import monitor_bp
 from Lawverse.agents.graph import create_agentic_chain
+from Lawverse.storage.factory import get_chat_store
 from api.auth import auth_bp, login_required
-from api.models import db
-from api.admin import admin
-from dotenv import load_dotenv
-import json
-import glob
-import os
-import secrets
 
 load_dotenv()
 
 app = Flask(__name__, template_folder="../templates")
 app.secret_key = os.getenv("SECRET_KEY") or secrets.token_hex(32)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///users.db")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-db.init_app(app)
-admin.init_app(app)
 app.register_blueprint(auth_bp)
 app.register_blueprint(monitor_bp)
 
-with app.app_context():
-    db.create_all()
-
 BASE_COMPONENTS = None
 active_chains = {}
-
 
 def get_base_components():
     global BASE_COMPONENTS
