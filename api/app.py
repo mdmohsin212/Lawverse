@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, session, stream_with_context, Response
 from dotenv import load_dotenv
+import secrets
 import os
 from threading import Lock
 import logging as py_logging
@@ -23,7 +24,7 @@ for logger_name in [
     
 load_dotenv()
 app = Flask(__name__, template_folder="../templates")
-app.secret_key = os.getenv("SECRET_KEY")
+app.secret_key = os.getenv("SECRET_KEY") or secrets.token_hex(32)
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(monitor_bp)
