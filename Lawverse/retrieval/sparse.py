@@ -1,7 +1,7 @@
 from __future__ import annotations
 import re
 import sys
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from rank_bm25 import BM25Okapi
 from langchain_core.documents import Document
 from Lawverse.logger import logging
@@ -14,25 +14,31 @@ STOP_WORDS = {
     "to", "of", "in", "on", "for", "from", "by", "with", "as", "at", "into",
     "this", "that", "these", "those", "it", "its", "he", "she", "they", "them",
     "his", "her", "their", "we", "you", "your", "i", "me", "my",
-    "shall", "may", "under", "section", "subsection",
+    "shall", "may", "under", "subsection",
 }
 
 
-def bm25_tokenizer(text: str) -> List[str]:
-    if not text:
+def bm25_tokenizer(text: Union[str, List[str], tuple]) -> List[str]:
+    if text is None:
         return []
 
-    text = text.lower()
+    if isinstance(text, (list, tuple)):
+        return [
+            str(token).lower().strip()
+            for token in text
+            if str(token).strip() and str(token).lower().strip() not in STOP_WORDS
+        ]
+
+    text = str(text).lower()
     english_tokens = re.findall(r"[a-zA-Z0-9]+", text)
     bangla_tokens = re.findall(r"[\u0980-\u09FF]+", text)
     tokens = english_tokens + bangla_tokens
 
-    cleaned = [
+    return [
         token
         for token in tokens
         if len(token) > 1 and token not in STOP_WORDS
     ]
-    return cleaned
 
 
 def build_sparse_index(chunks: List[Document], k1: float = 1.5, b: float = 0.8) -> BM25Okapi:
@@ -54,7 +60,7 @@ def build_sparse_index(chunks: List[Document], k1: float = 1.5, b: float = 0.8) 
 
 def bm25_retrieve(
     bm25: BM25Okapi,
-    query: str,
+    query: Union[str, List[str], tuple],
     chunks: List[Document],
     top_k: int = 10,
 ) -> List[Tuple[Document, float]]:
