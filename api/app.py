@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, jsonify, session, stream_with_context, Response
 from dotenv import load_dotenv
 import os
-import secrets
+from threading import Lock
+import logging as py_logging
 from Lawverse.pipeline.rag_pipeline import rag_components
 from Lawverse.pipeline.llm_loader import llm
 from Lawverse.memory.langchain_memory import ChatMemory
@@ -10,25 +11,38 @@ from Lawverse.monitoring.dashboard import monitor_bp
 from Lawverse.agents.graph import create_agentic_chain
 from Lawverse.storage.factory import get_chat_store
 from api.auth import auth_bp, login_required
-
+for logger_name in [
+    "httpcore",
+    "httpx",
+    "hpack",
+    "filelock",
+    "sentence_transformers",
+    "urllib3",
+]:
+    py_logging.getLogger(logger_name).setLevel(py_logging.WARNING)
+    
 load_dotenv()
-
 app = Flask(__name__, template_folder="../templates")
-app.secret_key = os.getenv("SECRET_KEY") or secrets.token_hex(32)
+app.secret_key = os.getenv("SECRET_KEY")
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(monitor_bp)
 
 BASE_COMPONENTS = None
+BASE_COMPONENTS_LOCK = Lock()
 active_chains = {}
 
 def get_base_components():
     global BASE_COMPONENTS
+    
+    if BASE_COMPONENTS is not None:
+        return BASE_COMPONENTS
 
-    if BASE_COMPONENTS is None:
-        logging.info("Loading Lawverse RAG base components...")
-        BASE_COMPONENTS = rag_components()
-        logging.info("Lawverse RAG base components loaded successfully.")
+    with BASE_COMPONENTS_LOCK:
+        if BASE_COMPONENTS is None:
+            logging.info("Loading Lawverse RAG base components...")
+            BASE_COMPONENTS = rag_components()
+            logging.info("Lawverse RAG base components loaded successfully.")
 
     return BASE_COMPONENTS
 
@@ -113,67 +127,58 @@ def rag_response():
 @app.route("/get_chats", methods=["GET"])
 @login_required
 def get_chats():
-    chats = []
-    user_id = session.get("user_id")
-    os.makedirs(MEMORY_DIR, exist_ok=True)
-    for file_path in glob.glob(f"{MEMORY_DIR}/*.json"):
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
+    try:
+        user_id = str(session.get("user_id"))
+        chats = get_chat_store().list_chats(user_id)
+        return jsonify(chats), 200
 
-            if data.get("user_id") == user_id:
-                chats.append({
-                    "chat_id": data.get("chat_id"),
-                    "last_updated": data.get("last_updated"),
-                    "title": data.get("title", f"Chat-{data.get('chat_id')}")
-                })
-
-        except Exception as e:
-            logging.warning(f"Skipping unreadable memory file {file_path}: {e}")
-
-    chats.sort(key=lambda x: x.get("last_updated") or x.get("chat_id"), reverse=True)
-    return jsonify(chats)
+    except Exception as e:
+        logging.error(f"Failed to list chats from cloud store: {e}")
+        return jsonify([]), 200
 
 
 @app.route("/load_chat/<chat_id>", methods=["POST"])
 @login_required
 def load_chat(chat_id):
-    user_id = session.get("user_id")
-    memory_path = os.path.join(MEMORY_DIR, f"user_{user_id}_{chat_id}.json")
-    if not os.path.exists(memory_path):
-        return jsonify({"error": "Chat not found"}), 404
+    try:
+        user_id = str(session.get("user_id"))
+        data = get_chat_store().load_chat(user_id, chat_id)
+        if not data:
+            return jsonify({"error": "Chat not found"}), 404
 
-    _, memory_manager = create_agent_session(chat_id=chat_id)
+        _, memory_manager = create_agent_session(chat_id=chat_id)
 
-    messages_list = memory_manager.memory.chat_memory.messages
-    messages = []
+        messages_list = memory_manager.memory.chat_memory.messages
+        messages = []
 
-    for i in range(0, len(messages_list), 2):
-        user_msg = messages_list[i].content if i < len(messages_list) else None
-        ai_msg = messages_list[i + 1].content if i + 1 < len(messages_list) else ""
-        if user_msg:
-            messages.append({
-                "user": user_msg,
-                "ai": ai_msg
-            })
+        for i in range(0, len(messages_list), 2):
+            user_msg = messages_list[i].content if i < len(messages_list) else None
+            ai_msg = messages_list[i + 1].content if i + 1 < len(messages_list) else ""
 
-    return jsonify({
-        "chat_id": chat_id,
-        "title": memory_manager._get_title(),
-        "messages": messages,
-    })
+            if user_msg:
+                messages.append({
+                    "user": user_msg,
+                    "ai": ai_msg
+                })
+
+        return jsonify({
+            "chat_id": chat_id,
+            "title": memory_manager._get_title(),
+            "messages": messages,
+        }), 200
+
+    except Exception as e:
+        logging.error(f"Failed to load chat from cloud store: {e}")
+        return jsonify({"error": "Internal Server Error"}), 500
 
 
 @app.route("/delete_chat/<chat_id>", methods=["DELETE"])
 @login_required
 def delete_chat(chat_id):
     try:
-        user_id = session.get("user_id")
-        memory_path = os.path.join(MEMORY_DIR, f"user_{user_id}_{chat_id}.json")
+        user_id = str(session.get("user_id"))
 
-        if os.path.exists(memory_path):
-            os.remove(memory_path)
-            logging.info(f"Deleted chat for user {user_id}, chat_id: {chat_id}")
+        deleted = get_chat_store().delete_chat(user_id, chat_id)
 
         was_active = chat_id in active_chains
         if was_active:
@@ -183,12 +188,12 @@ def delete_chat(chat_id):
             session.pop("chat_id", None)
 
         return jsonify({
-            "success": True,
+            "success": deleted,
             "was_active": was_active
         }), 200
 
     except Exception as e:
-        logging.error(f"Error deleting chat {chat_id}: {e}")
+        logging.error(f"Error deleting cloud chat {chat_id}: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
 
 if __name__ == "__main__":

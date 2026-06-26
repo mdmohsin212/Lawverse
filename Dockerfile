@@ -10,7 +10,6 @@ RUN pip install -r requirements.txt
 
 RUN mkdir -p /app/.cache && chmod -R 777 /app/.cache
 RUN mkdir -p /app/api/instance && chmod -R 777 /app/api/instance
-RUN python -m nltk.downloader punkt stopwords wordnet omw-1.4
 
 RUN mkdir -p /app/.cache
 ENV HF_HOME=/app/.cache
