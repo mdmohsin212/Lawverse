@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from supabase import create_client
 from Lawverse.storage.base import ChatStore
@@ -16,7 +16,7 @@ class SupabaseChatStore(ChatStore):
             "chat_id": str(chat_id),
             "title": title or "New legal query",
             "history": history or [],
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         existing = (
@@ -79,12 +79,5 @@ class SupabaseChatStore(ChatStore):
         return chats
 
     def delete_chat(self, user_id: str, chat_id: str) -> bool:
-        result = (
-            self.client
-            .table(self.table)
-            .delete()
-            .eq("user_id", str(user_id))
-            .eq("chat_id", str(chat_id))
-            .execute()
-        )
+        self.client.table(self.table).delete().eq("user_id", str(user_id)).eq("chat_id", str(chat_id)).execute()
         return True
