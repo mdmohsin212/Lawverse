@@ -7,13 +7,13 @@ from langchain_core.documents import Document
 def retrieve_with_hybrid_tool(retriever, query: str, top_k: int = 5) -> List[Document]:
     if retriever is None:
         return []
-    try:
+
+    if hasattr(retriever, "invoke"):
         docs = retriever.invoke(query)
-    except Exception:
-        try:
-            docs = retriever.get_relevant_documents(query)
-        except Exception:
-            docs = retriever._get_relevant_documents(query)
+    elif hasattr(retriever, "get_relevant_documents"):
+        docs = retriever.get_relevant_documents(query)
+    else:
+        docs = retriever._get_relevant_documents(query)
 
     return list(docs or [])[:top_k]
 

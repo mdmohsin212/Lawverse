@@ -37,7 +37,7 @@ def hybrid_retrieve(
 ):
     try:
         dense_results = faiss_db.similarity_search(query, k=initial_top_k)
-        sparse_results = bm25_retrieve(bm25, chunks, query, top_k=initial_top_k)
+        sparse_results = bm25_retrieve(bm25, query, chunks, top_k=initial_top_k)
 
         doc_map: Dict[str, Document] = {}
         rrf_scores = defaultdict(float)
