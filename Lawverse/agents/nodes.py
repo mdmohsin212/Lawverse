@@ -88,9 +88,13 @@ def _normalize_inline_citations(answer: str) -> str:
     if not answer:
         return ""
     text = re.sub(r"\^\[(\d+)\]", r"<sup>[\1]</sup>", answer)
-    text = re.sub(r"(?<!\w)\[(\d+)\](?!\w)", r"<sup>[\1]</sup>", text)
+    text = re.sub(
+        r"(?<!<sup>)\[(\d+)\](?!</sup>)",
+        r"<sup>[\1]</sup>",
+        text,
+    )
+    text = re.sub(r"\s+<sup>\[(\d+)\]</sup>", r"<sup>[\1]</sup>", text)
     return text
-
 
 def _append_first_citation(answer: str) -> str:
     answer = (answer or "").strip()
@@ -99,11 +103,14 @@ def _append_first_citation(answer: str) -> str:
 
     paragraphs = answer.split("\n\n", 1)
     first = paragraphs[0].rstrip()
-    first = f"{first}<sup>[1]</sup>"
+    
+    if first.endswith("."):
+        first = first[:-1].rstrip() + ".<sup>[1]</sup>"
+    else:
+        first = first + "<sup>[1]</sup>"
 
     paragraphs[0] = first
     return "\n\n".join(paragraphs)
-
 
 def _build_sources_markdown(
     docs: List[Document],
@@ -115,22 +122,24 @@ def _build_sources_markdown(
         return ""
 
     if source_numbers:
-        valid_numbers = [n for n in source_numbers if 1 <= n <= len(sources)]
+        valid_numbers = sorted({n for n in source_numbers if 1 <= n <= len(sources)})
     else:
         valid_numbers = [1]
     if not valid_numbers:
         valid_numbers = [1]
-        
+
     valid_numbers = valid_numbers[:max_sources]
 
-    lines = ["**Sources**", ""]
+    lines = ["", "**Sources**", ""]
+
     for n in valid_numbers:
         src = sources[n - 1]
         source = src.get("source", "Unknown document")
         page = src.get("page", "unknown")
         chunk_id = src.get("chunk_id", "unknown")
         lines.append(
-            f"{n} - **{source}**, page {page}, chunk {chunk_id} — retrieved as relevant context for the answer."
+            f"- **[{n}] {source}**, page {page}, chunk {chunk_id} — "
+            f"retrieved as relevant context for the answer."
         )
 
     return "\n".join(lines)

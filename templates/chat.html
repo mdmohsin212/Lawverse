@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -18,6 +18,45 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+      }
+
+      .bot-message sup.citation,
+      .message.bot sup.citation,
+      .assistant-message sup.citation {
+        display: inline-block;
+        font-size: 0.68em;
+        line-height: 1;
+        vertical-align: super;
+        margin-left: 4px;
+        margin-right: 2px;
+        color: inherit;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .bot-message p,
+      .message.bot p,
+      .assistant-message p {
+        line-height: 1.75;
+        margin-bottom: 0.85rem;
+      }
+
+      .bot-message ul,
+      .bot-message ol,
+      .message.bot ul,
+      .message.bot ol,
+      .assistant-message ul,
+      .assistant-message ol {
+        margin-top: 0.6rem;
+        margin-bottom: 0.8rem;
+        padding-left: 1.35rem;
+      }
+
+      .bot-message li,
+      .message.bot li,
+      .assistant-message li {
+        margin-bottom: 0.45rem;
+        line-height: 1.65;
       }
 
       body {
@@ -68,7 +107,9 @@
       }
 
       .neon-button:hover {
-        box-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff;
+        box-shadow:
+          0 0 15px #00ffff,
+          0 0 30px #00ffff;
         text-shadow: 0 0 10px #00ffff;
       }
 
@@ -105,7 +146,7 @@
         margin-bottom: 0.75rem;
         line-height: 1.7;
       }
-      
+
       .ai-message p:last-child {
         margin-bottom: 0;
       }
@@ -270,7 +311,9 @@
               class="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"
             ></div>
             <div class="ml-3">
-              <p class="text-sm font-medium">{{ session.get('user_name') }} {{ session.get('last_name') }}</p>
+              <p class="text-sm font-medium">
+                {{ session.get('user_name') }} {{ session.get('last_name') }}
+              </p>
             </div>
           </div>
         </div>
@@ -285,7 +328,7 @@
             <h1 class="text-xl font-bold glow-text">LAWVERSE CHAT</h1>
           </div>
           <button
-            onclick="window.location.href='/'"
+            onclick="window.location.href = '/'"
             class="text-gray-400 hover:text-cyan-300 transition-colors duration-300"
           >
             <i data-feather="home"></i>
@@ -325,7 +368,9 @@
             </button>
           </div>
         </div>
-        <span class="mb-3 text-center text-xs text-gray-400">Ai can make mistakes, so double-check it</span>
+        <span class="mb-3 text-center text-xs text-gray-400"
+          >Ai can make mistakes, so double-check it</span
+        >
       </div>
     </div>
 
@@ -337,12 +382,26 @@
     </button>
 
     <script>
+      marked.setOptions({
+        breaks: true,
+        gfm: true,
+      });
+
       function renderMarkdown(text) {
         if (!text) return "";
-        const normalized = text.replace(/\^\[(\d+)\]/g, "<sup>[$1]</sup>");
+
+        const normalized = text
+          .replace(/\^\[(\d+)\]/g, "<sup class='citation'>[$1]</sup>")
+          .replace(
+            /<sup>\[(\d+)\]<\/sup>/g,
+            "<sup class='citation'>[$1]</sup>",
+          );
 
         if (window.marked && window.DOMPurify) {
-          return DOMPurify.sanitize(marked.parse(normalized));
+          return DOMPurify.sanitize(marked.parse(normalized), {
+            ADD_TAGS: ["sup"],
+            ADD_ATTR: ["class"],
+          });
         }
 
         return normalized
@@ -364,9 +423,9 @@
           messageDiv.className = `message-bubble ${
             isUser ? "user-message" : "ai-message"
           }`;
-          
+
           const formattedMessage = isUser ? message : renderMarkdown(message);
-          
+
           messageDiv.innerHTML = `
           <div class="flex items-start">
             <div class="w-8 h-8 rounded-full ${
@@ -408,18 +467,18 @@
           messageInput.value = "";
           const typing = showTyping();
           try {
-              const response = await fetch("/response", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ message: text }),
-              });
-              const reader = response.body.getReader();
-              const decoder = new TextDecoder();
+            const response = await fetch("/response", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: text }),
+            });
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
 
-              typing.remove();
-              const aiBubble = document.createElement("div");
-              aiBubble.className = "message-bubble ai-message";
-              aiBubble.innerHTML = `
+            typing.remove();
+            const aiBubble = document.createElement("div");
+            aiBubble.className = "message-bubble ai-message";
+            aiBubble.innerHTML = `
                   <div class="flex items-start">
                       <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-3"></div>
                       <div>
@@ -427,26 +486,25 @@
                           <div class="message-content"></div>
                       </div>
                   </div>`;
-              chatMessages.appendChild(aiBubble);
-              const contentDiv = aiBubble.querySelector(".message-content");
-              let fullResponse = "";
+            chatMessages.appendChild(aiBubble);
+            const contentDiv = aiBubble.querySelector(".message-content");
+            let fullResponse = "";
 
-              while (true) {
-                  const { value, done } = await reader.read();
-                  if (done) break;
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
 
-                  const chunk = decoder.decode(value, { stream: true });
-                  fullResponse += chunk;
-                  
-                  contentDiv.innerHTML = renderMarkdown(fullResponse);
-                  chatMessages.scrollTop = chatMessages.scrollHeight;
-              }
+              const chunk = decoder.decode(value, { stream: true });
+              fullResponse += chunk;
 
-              loadSidebarChats();
+              contentDiv.innerHTML = renderMarkdown(fullResponse);
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
 
+            loadSidebarChats();
           } catch (err) {
-              typing.remove();
-              addMessage("❌ Streaming failed: " + err.message, false);
+            typing.remove();
+            addMessage("❌ Streaming failed: " + err.message, false);
           }
         }
 
