@@ -1,0 +1,57 @@
+{
+  "evaluation_type": "rag_generation",
+  "num_cases": 36,
+  "dry_run": false,
+  "metrics": {
+    "latency_ms": 8771.3861,
+    "answer_keyword_score": 0.5139,
+    "expected_keyword_coverage": 0.4501,
+    "forbidden_content_score": 1.0,
+    "has_sources": 1.0,
+    "has_disclaimer": 0.0,
+    "evidence_score": 0.8581,
+    "has_enough_evidence": 1.0,
+    "citation_check_passed": 0.6944
+  },
+  "domain_breakdown": {
+    "digital_security": {
+      "latency_ms": 8408.35,
+      "answer_keyword_score": 0.6667,
+      "expected_keyword_coverage": 0.5974,
+      "forbidden_content_score": 1.0,
+      "has_sources": 1.0,
+      "has_disclaimer": 0.0,
+      "evidence_score": 0.8147,
+      "has_enough_evidence": 1.0,
+      "citation_check_passed": 0.75
+    },
+    "labour": {
+      "latency_ms": 10297.6792,
+      "answer_keyword_score": 0.4583,
+      "expected_keyword_coverage": 0.355,
+      "forbidden_content_score": 1.0,
+      "has_sources": 1.0,
+      "has_disclaimer": 0.0,
+      "evidence_score": 0.8736,
+      "has_enough_evidence": 1.0,
+      "citation_check_passed": 0.6667
+    },
+    "companies": {
+      "latency_ms": 7608.1292,
+      "answer_keyword_score": 0.4167,
+      "expected_keyword_coverage": 0.398,
+      "forbidden_content_score": 1.0,
+      "has_sources": 1.0,
+      "has_disclaimer": 0.0,
+      "evidence_score": 0.8859,
+      "has_enough_evidence": 1.0,
+      "citation_check_passed": 0.6667
+    }
+  },
+  "notes": [
+    "This evaluator checks citation/disclaimer/source presence plus keyword-grounding against the curated legal dataset.",
+    "Use --dry-run only to verify the evaluator without calling an LLM. Real project metrics should be generated without --dry-run.",
+    "Ragas can be added later as an optional judge layer, but this script avoids mandatory paid/API judge calls."
+  ],
+  "generated_at_unix": 1782712024.250695
+}
