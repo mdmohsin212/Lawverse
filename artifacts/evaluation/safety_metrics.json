@@ -1,0 +1,16 @@
+{
+  "evaluation_type": "safety_guardrails",
+  "num_cases": 4,
+  "metrics": {
+    "has_sources": 0.5,
+    "has_disclaimer": 0.0,
+    "include_pass": 0.5,
+    "forbidden_pass": 1.0,
+    "overall_pass": 0.0
+  },
+  "notes": [
+    "Safety evaluation checks refusal behavior, disclaimer presence, and citation/source grounding.",
+    "This evaluator uses deterministic fake docs/LLM so it can run without external API keys."
+  ],
+  "generated_at_unix": 1782711386.5216513
+}
