@@ -1,0 +1,167 @@
+{
+  "created_at": "2026-06-29T05:48:22Z",
+  "questions": [
+    "Tell about labour law",
+    "What is the main goal of labour law?",
+    "Tell 5 important things about labour law",
+    "What is retrenchment under Bangladesh Labour Act?",
+    "What is cyber terrorism under Digital Security Act?",
+    "How can a private company be defined under Companies Act?"
+  ],
+  "startup": {
+    "rag_components_load_ms": 3871.25,
+    "num_chunks": 1135,
+    "faiss_path": "/tmp/lawverse_data/faiss_index",
+    "chunk_source": "/tmp/lawverse_data/process/translated_chunks.pkl"
+  },
+  "retrieval": {
+    "summary": {
+      "count": 6,
+      "avg_ms": 765.88,
+      "min_ms": 602.01,
+      "max_ms": 880.56,
+      "p50_ms": 729.33,
+      "p95_ms": 875.78
+    },
+    "cases": [
+      {
+        "question": "Tell about labour law",
+        "latency_ms": 729.33,
+        "num_docs": 5,
+        "top_source": "/tmp/lawverse_data/raw/Bangladesh-Labour-Act-2018.pdf",
+        "top_page": 1,
+        "top_chunk_id": 633,
+        "success": true,
+        "error": null
+      },
+      {
+        "question": "What is the main goal of labour law?",
+        "latency_ms": 880.56,
+        "num_docs": 5,
+        "top_source": "/tmp/lawverse_data/raw/Bangladesh-Labour-Act-2018.pdf",
+        "top_page": 89,
+        "top_chunk_id": 946,
+        "success": true,
+        "error": null
+      },
+      {
+        "question": "Tell 5 important things about labour law",
+        "latency_ms": 602.01,
+        "num_docs": 5,
+        "top_source": "/tmp/lawverse_data/raw/Bangladesh-Labour-Act-2018.pdf",
+        "top_page": 1,
+        "top_chunk_id": 633,
+        "success": true,
+        "error": null
+      },
+      {
+        "question": "What is retrenchment under Bangladesh Labour Act?",
+        "latency_ms": 842.12,
+        "num_docs": 5,
+        "top_source": "/tmp/lawverse_data/raw/Bangladesh-Labour-Act-2018.pdf",
+        "top_page": 17,
+        "top_chunk_id": 689,
+        "success": true,
+        "error": null
+      },
+      {
+        "question": "What is cyber terrorism under Digital Security Act?",
+        "latency_ms": 665.47,
+        "num_docs": 5,
+        "top_source": "/tmp/lawverse_data/raw/Digital-Security-Act-2018.pdf",
+        "top_page": 5,
+        "top_chunk_id": 13,
+        "success": true,
+        "error": null
+      },
+      {
+        "question": "How can a private company be defined under Companies Act?",
+        "latency_ms": 875.78,
+        "num_docs": 5,
+        "top_source": "/tmp/lawverse_data/raw/Bangladesh%20COMPANIES%20ACT.pdf",
+        "top_page": 119,
+        "top_chunk_id": 438,
+        "success": true,
+        "error": null
+      }
+    ]
+  },
+  "memory": {
+    "summary": {
+      "save_ms": 2096.28,
+      "load_ms": 267.39,
+      "list_ms": 285.92,
+      "delete_ms": 272.83,
+      "loaded": true,
+      "listed_count": 1,
+      "delete_success": true,
+      "success": true
+    },
+    "errors": {
+      "save_error": null,
+      "load_error": null,
+      "list_error": null,
+      "delete_error": null
+    }
+  },
+  "agent": {
+    "summary": {
+      "count": 6,
+      "avg_ms": 8594.02,
+      "min_ms": 5005.54,
+      "max_ms": 13778.16,
+      "p50_ms": 6833.6,
+      "p95_ms": 11273.88
+    },
+    "cases": [
+      {
+        "question": "Tell about labour law",
+        "latency_ms": 11273.88,
+        "answer_chars": 773,
+        "has_sources": true,
+        "success": true,
+        "error": null
+      },
+      {
+        "question": "What is the main goal of labour law?",
+        "latency_ms": 6833.6,
+        "answer_chars": 670,
+        "has_sources": true,
+        "success": true,
+        "error": null
+      },
+      {
+        "question": "Tell 5 important things about labour law",
+        "latency_ms": 13778.16,
+        "answer_chars": 1347,
+        "has_sources": true,
+        "success": true,
+        "error": null
+      },
+      {
+        "question": "What is retrenchment under Bangladesh Labour Act?",
+        "latency_ms": 8981.41,
+        "answer_chars": 1587,
+        "has_sources": true,
+        "success": true,
+        "error": null
+      },
+      {
+        "question": "What is cyber terrorism under Digital Security Act?",
+        "latency_ms": 5005.54,
+        "answer_chars": 498,
+        "has_sources": true,
+        "success": true,
+        "error": null
+      },
+      {
+        "question": "How can a private company be defined under Companies Act?",
+        "latency_ms": 5691.52,
+        "answer_chars": 679,
+        "has_sources": true,
+        "success": true,
+        "error": null
+      }
+    ]
+  }
+}
