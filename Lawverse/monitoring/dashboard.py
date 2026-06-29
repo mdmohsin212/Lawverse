@@ -23,36 +23,66 @@ TEMPLATE = """
         body { font-family: Arial, sans-serif; margin:0; background:#f7f9fc; color:#222; }
         h1 { text-align:center; margin-top:24px; }
         .note { width:86%%; margin:1rem auto; background:#fff8e6; border:1px solid #f0d58a; padding:1rem; border-radius:10px; }
-        #chart { width:90%%; margin:auto; }
+        #scoreChart, #latencyChart { width:90%%; margin:1rem auto; }
         .latest { background:#fff; margin:2rem auto; padding:1rem 2rem; border-radius:12px; width:86%%; box-shadow:0 0 10px rgba(0,0,0,0.08); }
         pre { background:#f2f2f2; padding:1rem; border-radius:8px; overflow-x:auto; }
     </style>
 </head>
 <body>
     <h1>📊 Lawverse Evaluation Dashboard</h1>
-    <div class="note">
+    <div class="note text-center">
         This dashboard only reads saved evaluation reports from <code>artifacts/evaluation/</code>.
         It does not run LLM/RAG evaluation automatically.
     </div>
-    <div id="chart"></div>
+    <div id="scoreChart"></div>
+    <div id="latencyChart"></div>
     <div class="latest">
         <h2>Latest Reports</h2>
         <pre id="latest"></pre>
     </div>
 
     <script>
-        const data = {{ data_json | safe }};
-        const latest = {{ latest_json | safe }};
+    const data = {{ data_json | safe }};
+    const latest = {{ latest_json | safe }};
+
+    function isLatency(metric) {
+        metric = metric.toLowerCase();
+        return metric.includes("latency") || metric.endsWith("_ms");
+    }
+
+    const scoreData = data.filter(d => !isLatency(d.metric));
+    const latencyData = data.filter(d => isLatency(d.metric));
+
+    function drawChart(divId, chartData, title, yTitle, yRange=null) {
         const traces = [];
-        const groups = [...new Set(data.map(d => d.report))];
+        const groups = [...new Set(chartData.map(d => d.report))];
+
         groups.forEach(group => {
-            const mdata = data.filter(d => d.report === group);
-            traces.push({ x: mdata.map(d => d.metric), y: mdata.map(d => d.value), type:'bar', name:group });
+            const mdata = chartData.filter(d => d.report === group);
+            traces.push({
+                x: mdata.map(d => d.metric),
+                y: mdata.map(d => d.value),
+                type: "bar",
+                name: group
+            });
         });
-        const layout = { title:'Saved Evaluation Metrics', barmode:'group', yaxis:{title:'Score / Value'} };
-        Plotly.newPlot('chart', traces, layout);
-        document.getElementById('latest').textContent = JSON.stringify(latest, null, 2);
-    </script>
+
+        const layout = {
+            title: title,
+            barmode: "group",
+            yaxis: { title: yTitle, range: yRange },
+            xaxis: { tickangle: -35 },
+            margin: { b: 140 }
+        };
+
+        Plotly.newPlot(divId, traces, layout);
+    }
+
+    drawChart("scoreChart", scoreData, "Evaluation Score Metrics", "Score", [0, 1.05]);
+    drawChart("latencyChart", latencyData, "Latency Metrics", "Milliseconds");
+
+    document.getElementById("latest").textContent = JSON.stringify(latest, null, 2);
+</script>
 </body>
 </html>
 """

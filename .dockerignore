@@ -8,7 +8,6 @@ __pycache__/
 .pytest_cache/
 api/instance/
 Lawverse/data/
-artifacts/
 monitoring/
 .DS_Store
 .vscode/
