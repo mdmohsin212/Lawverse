@@ -1,0 +1,27 @@
+{
+  "evaluation_type": "agent_behavior",
+  "num_cases": 40,
+  "metrics": {
+    "intent_correct": 0.975,
+    "retrieval_plan_correct": 0.975,
+    "has_enough_evidence": 0.9,
+    "citation_check_passed": 0.1,
+    "has_final_answer": 1.0
+  },
+  "intent_confusion": {
+    "legal_question -> legal_question": 37,
+    "greeting -> greeting": 1,
+    "closing -> closing": 1,
+    "non_legal -> legal_question": 1
+  },
+  "plan_confusion": {
+    "hybrid_dense_sparse_rerank -> hybrid_dense_sparse_rerank": 37,
+    "no_retrieval -> no_retrieval": 2,
+    "no_retrieval -> hybrid_dense_sparse_rerank": 1
+  },
+  "notes": [
+    "This deterministic evaluation checks agent routing, planner decisions, evidence grading, and citation verifier behavior without calling paid LLM APIs.",
+    "The retriever itself is evaluated separately in retrieval_eval.py."
+  ],
+  "generated_at_unix": 1782711343.9591708
+}
